@@ -24,5 +24,6 @@ rootProject.name = "xmldtd-kt"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(
+    ":codegen",
     ":deserialize"
 )
