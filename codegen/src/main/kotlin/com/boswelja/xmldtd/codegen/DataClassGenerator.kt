@@ -51,10 +51,10 @@ public class DataClassGenerator(
 
         val className = ClassName(packageName, element.elementName.toPascalCase())
 
-        generatePropsForAttrs(element.attributes).also {
-            parameters.addAll(it.parameters)
-            properties.addAll(it.properties)
-            nestedTypes.addAll(it.types)
+        generatePropsForAttrs(element.attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
         }
 
         when (element) {
@@ -129,10 +129,10 @@ public class DataClassGenerator(
                 }
             }
             is ElementDefinition.WithChildren -> {
-                generatePropertiesForChildren(element.children).also {
-                    parameters.addAll(it.parameters)
-                    properties.addAll(it.properties)
-                    types.addAll(it.types)
+                generatePropertiesForChildren(element.children).also { generatedProperties ->
+                    parameters.addAll(generatedProperties.parameters)
+                    properties.addAll(generatedProperties.properties)
+                    types.addAll(generatedProperties.types)
                 }
             }
             is ElementDefinition.Any,
@@ -150,7 +150,9 @@ public class DataClassGenerator(
                         .build()
                 )
             }
-            is ElementDefinition.Either -> TODO()
+            is ElementDefinition.Either -> {
+                // TODO We haven't implemented this yet, this will just silently fail!
+            }
         }
 
         val rootType = if (parameters.isEmpty()) {
@@ -267,11 +269,11 @@ public class DataClassGenerator(
     internal fun generateEnumForAttribute(name: String, enumValues: AttributeDefinition.Type.Enum): TypeSpec {
         val enumBuilder = TypeSpec.enumBuilder(name.toPascalCase())
             .addAnnotation(Serializable::class)
-        enumValues.options.forEach {
+        enumValues.options.forEach { enumName ->
             enumBuilder.addEnumConstant(
-                it.toPascalCase(),
+                enumName.toPascalCase(),
                 TypeSpec.anonymousClassBuilder()
-                    .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", it).build())
+                    .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", enumName).build())
                     .build()
             )
         }

@@ -21,21 +21,23 @@ public sealed interface ChildElementDefinition {
 
     /**
      * Describes a child element that can occur exactly once.
-     *
-     * @property elementDefinition The definition of the child element.
      */
     public data class Single(
         override val occurs: Occurs,
+        /**
+         * The definition of the child element.
+         */
         val elementDefinition: ElementDefinition,
     ) : ChildElementDefinition
 
     /**
      * Describes a child element that will match exactly one of the specified options.
-     *
-     * @property options A list of child element options that can occur.
      */
     public data class Either(
         override val occurs: Occurs,
+        /**
+         * A list of child element options that can occur.
+         */
         val options: List<ChildElementDefinition>,
     ) : ChildElementDefinition
 
