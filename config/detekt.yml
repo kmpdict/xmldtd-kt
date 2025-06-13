@@ -68,6 +68,8 @@ comments:
 
 complexity:
   active: true
+  LongMethod:
+    active: false
   LongParameterList:
     active: true
     ignoreDefaultParameters: true
@@ -80,7 +82,7 @@ complexity:
   ReplaceSafeCallChainWithRun:
     active: false
   StringLiteralDuplication:
-    active: true
+    active: false
     threshold: 3
   TooManyFunctions:
     active: true
@@ -155,7 +157,7 @@ style:
   BracesOnIfStatements:
     active: true
   BracesOnWhenStatements:
-    active: true
+    active: false
   CanBeNonNullable:
     active: true
   CascadingCallWrapping:

@@ -1,6 +1,6 @@
 package com.boswelja.xmldtd.codegen
 
-public fun String.toPascalCase(): String {
+internal fun String.toPascalCase(): String {
     return this
         .split("-", "_")
         .joinToString(separator = "") { segment ->
@@ -14,11 +14,11 @@ public fun String.toPascalCase(): String {
         }
 }
 
-public fun String.toCamelCase(): String {
+internal fun String.toCamelCase(): String {
     return this.toPascalCase().replaceFirstChar { it.lowercaseChar() }
 }
 
-public fun String.stripPrefix(separator: String = ":"): String {
+internal fun String.stripPrefix(separator: String = ":"): String {
     return if (this.contains(separator)) {
         this.split(separator)[1]
     } else {

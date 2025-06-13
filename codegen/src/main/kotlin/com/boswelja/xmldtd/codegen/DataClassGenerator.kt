@@ -22,10 +22,19 @@ import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlValue
 import java.nio.file.Path
 
+/**
+ * Creates a class that can take a [DocumentTypeDefinition] and write it to [targetDir].
+ *
+ * @param packageName The package name for the generated sources.
+ * @param targetDir The path at which the generated sources will be written.
+ */
 public class DataClassGenerator(
     private val packageName: String,
     private val targetDir: Path
 ) {
+    /**
+     * Writes the provided [DocumentTypeDefinition] to the specified [targetDir].
+     */
     public fun writeDtdToTarget(dtd: DocumentTypeDefinition) {
         val generatedTypes = generateTypeSpecForElement(dtd.rootElement)
         FileSpec.builder(generatedTypes.rootClassName)
@@ -42,7 +51,7 @@ public class DataClassGenerator(
 
         val className = ClassName(packageName, element.elementName.toPascalCase())
 
-        generatePropertiesForAttributes(element.attributes).also {
+        generatePropsForAttrs(element.attributes).also {
             parameters.addAll(it.parameters)
             properties.addAll(it.properties)
             nestedTypes.addAll(it.types)
@@ -72,12 +81,17 @@ public class DataClassGenerator(
                     val sealedSubtypes = element.children
                         .map { elementDefinition ->
                             val typeSpec = generateTypeSpecForElement(elementDefinition)
-                            val rootTypeSpec = typeSpec.topLevelTypes.first { it.name == typeSpec.rootClassName.simpleName }
+                            val rootTypeSpec = typeSpec.topLevelTypes
+                                .first { it.name == typeSpec.rootClassName.simpleName }
                             typeSpec.topLevelTypes
                                 .toMutableList()
                                 .apply {
                                     remove(rootTypeSpec)
-                                    add(rootTypeSpec.toBuilder().addSuperinterface(ClassName(packageName, className.simpleName, sealedType.name!!)).build())
+                                    add(rootTypeSpec.toBuilder()
+                                        .addSuperinterface(
+                                            ClassName(packageName, className.simpleName, sealedType.name!!)
+                                        )
+                                        .build())
                                 }
                         }
                         .flatten()
@@ -87,14 +101,20 @@ public class DataClassGenerator(
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(Serializable::class)
                             .addAnnotation(JvmInline::class)
-                            .addProperty(PropertySpec.builder("content", String::class).addModifiers(KModifier.PUBLIC).initializer("content").build())
-                            .primaryConstructor(FunSpec.constructorBuilder().addParameter("content", String::class).build())
+                            .addProperty(PropertySpec.builder("content", String::class)
+                                .addModifiers(KModifier.PUBLIC)
+                                .initializer("content")
+                                .build())
+                            .primaryConstructor(FunSpec.constructorBuilder()
+                                .addParameter("content", String::class)
+                                .build())
                             .addSuperinterface(ClassName(packageName, className.simpleName, sealedType.name!!))
                             .build()
                     }
                     nestedTypes.add(sealedType)
                     nestedTypes.addAll(sealedSubtypes)
-                    val propertyType = List::class.asClassName().parameterizedBy(className.nestedClass(sealedType.name!!))
+                    val propertyType = List::class.asClassName()
+                        .parameterizedBy(className.nestedClass(sealedType.name!!))
                     parameters.add(
                         ParameterSpec.builder("content", propertyType)
                             .build()
@@ -139,7 +159,9 @@ public class DataClassGenerator(
                 .addModifiers(KModifier.DATA)
                 .addAnnotation(Serializable::class)
                 .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
-                .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", element.elementName).build())
+                .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                    .addMember("value = %S", element.elementName)
+                    .build())
                 .addTypes(nestedTypes)
                 .build()
         } else {
@@ -151,7 +173,9 @@ public class DataClassGenerator(
                 .addProperties(properties)
                 .addAnnotation(Serializable::class)
                 .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
-                .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", element.elementName).build())
+                .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                    .addMember("value = %S", element.elementName)
+                    .build())
                 .addModifiers(KModifier.DATA)
                 .addTypes(nestedTypes)
                 .build()
@@ -179,7 +203,8 @@ public class DataClassGenerator(
                     List::class.asClassName().parameterizedBy(childTypes.rootClassName)
             }
             // If the type is a List, pluralize the name
-            val propertyName = if (childElementDefinition.occurs == ChildElementDefinition.Occurs.ZeroOrMore || childElementDefinition.occurs == ChildElementDefinition.Occurs.AtLeastOnce) {
+            val propertyName = if (childElementDefinition.occurs == ChildElementDefinition.Occurs.ZeroOrMore ||
+                childElementDefinition.occurs == ChildElementDefinition.Occurs.AtLeastOnce) {
                 "${childTypes.rootClassName.simpleName.toCamelCase()}s"
             } else {
                 childTypes.rootClassName.simpleName.toCamelCase()
@@ -194,7 +219,9 @@ public class DataClassGenerator(
                     .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
                     .apply {
                         if (childElementDefinition is ChildElementDefinition.Single) {
-                            addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", childElementDefinition.elementDefinition.elementName).build())
+                            addAnnotation(AnnotationSpec.builder(SerialName::class)
+                                .addMember("value = %S", childElementDefinition.elementDefinition.elementName)
+                                .build())
                         }
                     }
                     .initializer(propertyName)
@@ -251,7 +278,7 @@ public class DataClassGenerator(
         return enumBuilder.build()
     }
 
-    internal fun generatePropertiesForAttributes(attributes: List<AttributeDefinition>): GeneratedProperties {
+    internal fun generatePropsForAttrs(attributes: List<AttributeDefinition>): GeneratedProperties {
         val types = mutableListOf<TypeSpec>()
         val properties = mutableListOf<PropertySpec>()
         val parameters = mutableListOf<ParameterSpec>()
@@ -284,7 +311,9 @@ public class DataClassGenerator(
                     PropertySpec.builder(propertyName, type)
                         .addModifiers(KModifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", false).build())
-                        .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", attribute.attributeName).build())
+                        .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                            .addMember("value = %S", attribute.attributeName)
+                            .build())
                         .initializer((attribute.value as AttributeDefinition.Value.Fixed).value)
                         .build()
                 )
@@ -306,7 +335,9 @@ public class DataClassGenerator(
                     PropertySpec.builder(propertyName, type)
                         .addModifiers(KModifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", false).build())
-                        .addAnnotation(AnnotationSpec.builder(SerialName::class).addMember("value = %S", attribute.attributeName).build())
+                        .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                            .addMember("value = %S", attribute.attributeName)
+                            .build())
                         .initializer(propertyName)
                         .build()
                 )
