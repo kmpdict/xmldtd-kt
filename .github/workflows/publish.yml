@@ -2,6 +2,9 @@ name: Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        required: true
 
 jobs:
   build:
@@ -41,11 +44,8 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-      - name: Calculate calver version
-        id: date
-        run: echo "date=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
       - name: Build
-        run: ./gradlew publishAllPublicationsToGithubRepository -Pversion=${{ steps.date.outputs.date }}-dev
+        run: ./gradlew publishAllPublicationsToGithubRepository -Pversion=${{ github.event.inputs.version }}
         env:
           ORG_GRADLE_PROJECT_githubUsername: boswelja
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
@@ -71,11 +71,8 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-      - name: Calculate calver version
-        id: date
-        run: echo "date=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
       - name: Build
-        run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-configuration-cache -Pversion=${{ steps.date.outputs.date }}-dev
+        run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-configuration-cache -Pversion=${{ github.event.inputs.version }}
         env:
           PUBLISHING: true
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
