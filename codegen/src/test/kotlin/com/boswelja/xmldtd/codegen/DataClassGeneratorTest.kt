@@ -47,8 +47,16 @@ class DataClassGeneratorTest {
                 |package $packageName
                 |
                 |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
                 |
-                |public value class NoNestedData(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "no-nested-data")
+                |public data class NoNestedData(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
@@ -59,6 +67,13 @@ class DataClassGeneratorTest {
             ) to """
                 |package $packageName
                 |
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "no-nested-data")
                 |public data object NoNestedData
                 |
             """.trimMargin(),
@@ -69,8 +84,16 @@ class DataClassGeneratorTest {
                 |package $packageName
                 |
                 |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
                 |
-                |public value class NoNestedData(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "no-nested-data")
+                |public data class NoNestedData(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
@@ -91,9 +114,19 @@ class DataClassGeneratorTest {
                 |package $packageName
                 |
                 |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
                 |
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "no-nested-data")
                 |public data class NoNestedData(
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "attr1")
                 |  public val attr1: String,
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
@@ -204,40 +237,90 @@ class DataClassGeneratorTest {
                 |
                 |import kotlin.String
                 |import kotlin.collections.List
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
                 |
-                |public value class Headline(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "HEADLINE")
+                |public data class Headline(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
-                |public value class Byline(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "BYLINE")
+                |public data class Byline(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
-                |public value class Lead(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "LEAD")
+                |public data class Lead(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
-                |public value class Body(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "BODY")
+                |public data class Body(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
-                |public value class Notes(
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "NOTES")
+                |public data class Notes(
+                |  @XmlValue
                 |  public val content: String,
                 |)
                 |
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "ARTICLE")
                 |public data class Article(
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "AUTHOR")
                 |  public val author: String,
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "EDITOR")
                 |  public val editor: String?,
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "DATE")
                 |  public val date: String?,
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "EDITION")
                 |  public val edition: String?,
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "HEADLINE")
                 |  public val headline: Headline,
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "BYLINE")
                 |  public val byline: Byline,
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "LEAD")
                 |  public val lead: Lead,
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "BODY")
                 |  public val body: Body,
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "NOTES")
                 |  public val notes: Notes,
                 |)
                 |
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "NESTED")
                 |public data class Nested(
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "ARTICLE")
                 |  public val articles: List<Article>,
                 |)
                 |
@@ -246,6 +329,7 @@ class DataClassGeneratorTest {
 
         testCases.forEach { (input, expected) ->
             generator.writeDtdToTarget(input)
+            println(input)
 
             assertEquals(
                 expected,
