@@ -155,43 +155,31 @@ public class DataClassGenerator(
             }
         }
 
-        val rootType = if (parameters.isEmpty()) {
+        val rootTypeBuilder = if (parameters.isEmpty()) {
             TypeSpec.objectBuilder(className.simpleName)
-                .addProperties(properties)
-                .addModifiers(KModifier.DATA)
-                .apply {
-                    element.comment?.let {
-                        addKdoc(it)
-                    }
-                }
-                .addAnnotation(Serializable::class)
-                .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
-                .addAnnotation(AnnotationSpec.builder(SerialName::class)
-                    .addMember("value = %S", element.elementName)
-                    .build())
-                .addTypes(nestedTypes)
-                .build()
         } else {
             val constructorBuilder = FunSpec.constructorBuilder()
                 .addParameters(parameters)
                 .build()
             TypeSpec.classBuilder(className.simpleName)
                 .primaryConstructor(constructorBuilder)
-                .addProperties(properties)
-                .addAnnotation(Serializable::class)
-                .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
-                .addAnnotation(AnnotationSpec.builder(SerialName::class)
-                    .addMember("value = %S", element.elementName)
-                    .build())
-                .addModifiers(KModifier.DATA)
-                .apply {
-                    element.comment?.let {
-                        addKdoc(it)
-                    }
-                }
-                .addTypes(nestedTypes)
-                .build()
         }
+
+        val rootType = rootTypeBuilder
+            .apply {
+                element.comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addModifiers(KModifier.DATA)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", element.elementName)
+                .build())
+            .build()
 
         types.add(rootType)
         return GeneratedTypes(
