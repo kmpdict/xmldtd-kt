@@ -25,6 +25,6 @@ detekt {
 
 publish {
     description = "Generate Kotlin code from XML DTD."
-    repositoryUrl = "https://github.com/boswelja/xmldtd-kt"
+    repositoryUrl = "https://github.com/kmpdict/xmldtd-kt"
     license = "CC-BY-SA-4.0"
 }

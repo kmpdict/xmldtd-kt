@@ -34,6 +34,6 @@ detekt {
 
 publish {
     description = "Deserialize XML DTD into type-safe Kotlin objects."
-    repositoryUrl = "https://github.com/boswelja/xmldtd-kt"
+    repositoryUrl = "https://github.com/kmpdict/xmldtd-kt"
     license = "CC-BY-SA-4.0"
 }
