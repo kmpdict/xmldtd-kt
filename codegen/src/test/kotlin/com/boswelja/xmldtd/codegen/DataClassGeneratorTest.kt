@@ -35,12 +35,69 @@ class DataClassGeneratorTest {
     }
 
     @Test
+    fun `testGenerateDataClass should generate comments`() {
+        val testCases = mapOf(
+            DocumentTypeDefinition(
+                rootElement = ElementDefinition.ParsedCharacterData(
+                    elementName = "comments",
+                    attributes = listOf(
+                        AttributeDefinition(
+                            attributeName = "attr1",
+                            attributeType = AttributeDefinition.Type.CharacterData,
+                            value = AttributeDefinition.Value.Required,
+                            comment = "This is an attribute with a comment.",
+                        )
+                    ),
+                    comment = "This is an element with a comment.",
+                ),
+                entities = emptyList()
+            ) to """
+                |package $packageName
+                |
+                |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
+                |
+                |/**
+                | * This is an element with a comment.
+                | */
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "comments")
+                |public data class Comments(
+                |  /**
+                |   * This is an attribute with a comment.
+                |   */
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "attr1")
+                |  public val attr1: String,
+                |  @XmlValue
+                |  public val content: String,
+                |)
+                |
+            """.trimMargin(),
+        )
+
+        testCases.forEach { (input, expected) ->
+            generator.writeDtdToTarget(input)
+
+            assertEquals(
+                expected,
+                testDir.resolve("com/example/test/Comments.kt").readText()
+            )
+        }
+    }
+
+    @Test
     fun `testGenerateDataClass should generate with no nested elements`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
                 rootElement = ElementDefinition.ParsedCharacterData(
                     elementName = "no-nested-data",
-                    attributes = emptyList()
+                    attributes = emptyList(),
+                    comment = null,
                 ),
                 entities = emptyList()
             ) to """
@@ -62,7 +119,11 @@ class DataClassGeneratorTest {
                 |
             """.trimMargin(),
             DocumentTypeDefinition(
-                rootElement = ElementDefinition.Empty(elementName = "no-nested-data", attributes = emptyList()),
+                rootElement = ElementDefinition.Empty(
+                    elementName = "no-nested-data",
+                    attributes = emptyList(),
+                    comment = null,
+                ),
                 entities = emptyList()
             ) to """
                 |package $packageName
@@ -78,7 +139,11 @@ class DataClassGeneratorTest {
                 |
             """.trimMargin(),
             DocumentTypeDefinition(
-                rootElement = ElementDefinition.Any(elementName = "no-nested-data", attributes = emptyList()),
+                rootElement = ElementDefinition.Any(
+                    elementName = "no-nested-data",
+                    attributes = emptyList(),
+                    comment = null,
+                ),
                 entities = emptyList()
             ) to """
                 |package $packageName
@@ -105,9 +170,11 @@ class DataClassGeneratorTest {
                         AttributeDefinition(
                             attributeName = "attr1",
                             attributeType = AttributeDefinition.Type.CharacterData,
-                            value = AttributeDefinition.Value.Required
+                            value = AttributeDefinition.Value.Required,
+                            comment = null,
                         )
-                    )
+                    ),
+                    comment = null,
                 ),
                 entities = emptyList()
             ) to """
@@ -158,65 +225,76 @@ class DataClassGeneratorTest {
                                     AttributeDefinition(
                                         attributeName = "AUTHOR",
                                         attributeType = AttributeDefinition.Type.CharacterData,
-                                        value = AttributeDefinition.Value.Required
+                                        value = AttributeDefinition.Value.Required,
+                                        comment = null,
                                     ),
                                     AttributeDefinition(
                                         attributeName = "EDITOR",
                                         attributeType = AttributeDefinition.Type.CharacterData,
-                                        value = AttributeDefinition.Value.Implied
+                                        value = AttributeDefinition.Value.Implied,
+                                        comment = null,
                                     ),
                                     AttributeDefinition(
                                         attributeName = "DATE",
                                         attributeType = AttributeDefinition.Type.CharacterData,
-                                        value = AttributeDefinition.Value.Implied
+                                        value = AttributeDefinition.Value.Implied,
+                                        comment = null,
                                     ),
                                     AttributeDefinition(
                                         attributeName = "EDITION",
                                         attributeType = AttributeDefinition.Type.CharacterData,
-                                        value = AttributeDefinition.Value.Implied
+                                        value = AttributeDefinition.Value.Implied,
+                                        comment = null,
                                     ),
                                 ),
                                 children = listOf(
                                     ChildElementDefinition.Single(
                                         elementDefinition = ElementDefinition.ParsedCharacterData(
                                             elementName = "HEADLINE",
-                                            attributes = emptyList()
+                                            attributes = emptyList(),
+                                            comment = null,
                                         ),
                                         occurs = ChildElementDefinition.Occurs.Once
                                     ),
                                     ChildElementDefinition.Single(
                                         elementDefinition = ElementDefinition.ParsedCharacterData(
                                             elementName = "BYLINE",
-                                            attributes = emptyList()
+                                            attributes = emptyList(),
+                                            comment = null,
                                         ),
                                         occurs = ChildElementDefinition.Occurs.Once
                                     ),
                                     ChildElementDefinition.Single(
                                         elementDefinition = ElementDefinition.ParsedCharacterData(
                                             elementName = "LEAD",
-                                            attributes = emptyList()
+                                            attributes = emptyList(),
+                                            comment = null,
                                         ),
                                         occurs = ChildElementDefinition.Occurs.Once
                                     ),
                                     ChildElementDefinition.Single(
                                         elementDefinition = ElementDefinition.ParsedCharacterData(
                                             elementName = "BODY",
-                                            attributes = emptyList()
+                                            attributes = emptyList(),
+                                            comment = null,
                                         ),
                                         occurs = ChildElementDefinition.Occurs.Once
                                     ),
                                     ChildElementDefinition.Single(
                                         elementDefinition = ElementDefinition.ParsedCharacterData(
                                             elementName = "NOTES",
-                                            attributes = emptyList()
+                                            attributes = emptyList(),
+                                            comment = null,
                                         ),
                                         occurs = ChildElementDefinition.Occurs.Once
                                     ),
-                                )
+                                ),
+                                comment = null,
                             ),
                             occurs = ChildElementDefinition.Occurs.AtLeastOnce
                         )
-                    )
+                    ),
+                    comment = null,
                 ),
                 entities = listOf(
                     Entity.Internal(
