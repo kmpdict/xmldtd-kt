@@ -5,10 +5,7 @@ import kotlinx.io.readLine
 
 public fun DocumentTypeDefinition.Companion.fromSource(source: Source): DocumentTypeDefinition {
     // Find the start of the doctype (there might be xml tags and comments before the actual start)
-    var line: String?
-    do {
-        line = source.readLine()
-    } while (line != null && !line.matches(DoctypeRegex))
+    var line: String? = source.readLinesUntil { it.matches(DoctypeRegex) }
     requireNotNull(line) { "No <!DOCTYPE> tag found in input" }
 
     // Extract the root element name from the doctype line
@@ -22,54 +19,18 @@ public fun DocumentTypeDefinition.Companion.fromSource(source: Source): Document
 
     line = source.readLine()?.trim()
     while (line != null && line != "]>") {
-        if (!line.startsWith("<")) {
-            // We're not at the start of a tag, so we can skip this line
-            line = source.readLine()?.trim()
-            continue
-        }
-        if (!line.endsWith(">")) {
-            // The tag spans multiple lines, let's grab them all
-            val remainingLines = source.readLinesUntil { it.endsWith(">") }
-            line = "$line $remainingLines"
-        }
-
         // TODO this runs all checks every time - not good
-        ElementRegex.find(line)?.let { matchResult ->
-            val name = matchResult.groupValues[1]
-            val isMixed = matchResult.groupValues[2].endsWith("*")
-            val children = if (isMixed) {
-                matchResult.groupValues[2]
-                    .removeSurrounding("(", ")*")
-                    .split("|")
-            } else {
-                matchResult.groupValues[2]
-                    .removeSurrounding("(", ")")
-                    .split(",")
-                    .map { it.trim() }
-            }
-            elements.add(ElementDto(name, children, isMixed))
+        ElementDto.fromLine(line)?.let {
+            elements.add(it)
         }
-        InternalEntityMatcher.find(line)?.let { matchResult ->
-            val name = matchResult.groupValues[1]
-            val value = matchResult.groupValues[2]
-            internalEntities.add(InternalEntityDto(name, value))
+        InternalEntityDto.fromLine(line)?.let {
+            internalEntities.add(it)
         }
-        ExternalEntityMatcher.find(line)?.let { matchResult ->
-            val name = matchResult.groupValues[1]
-            val uri = matchResult.groupValues[2]
-            externalEntities.add(ExternalEntityDto(name, uri))
+        ExternalEntityDto.fromLine(line)?.let {
+            externalEntities.add(it)
         }
-        AttributeListRegex.find(line)?.let { matchResult ->
-            val elementName = matchResult.groupValues[1]
-            val attrName = matchResult.groupValues[2]
-            val type = matchResult.groupValues[3]
-            val value = matchResult.groupValues[4]
-            attributes.add(AttributeDto(
-                elementName = elementName,
-                attributeName = attrName,
-                type = type,
-                value = value,
-            ))
+        AttributeDto.fromLine(line)?.let {
+            attributes.add(it)
         }
 
         line = source.readLine()?.trim()
@@ -242,34 +203,3 @@ internal fun buildAttribute(attribute: AttributeDto): AttributeDefinition {
 }
 
 internal val DoctypeRegex = Regex("<!DOCTYPE\\s+([a-zA-Z0-9_]+)\\s*\\[")
-
-internal val ElementRegex = Regex("<!ELEMENT\\s+([a-zA-Z0-9_]+)\\s+(\\(.+\\)\\*?|EMPTY|ANY)\\s*>")
-
-internal val InternalEntityMatcher = Regex("<!ENTITY\\s+([a-zA-Z0-9_-]+)\\s+\"(.+)\"\\s*>")
-
-internal val ExternalEntityMatcher = Regex("<!ENTITY\\s+([a-zA-Z0-9_-]+)\\s+SYSTEM\\s+\"(.+)\"\\s*>")
-
-internal val AttributeListRegex = Regex("<!ATTLIST\\s+([a-zA-Z0-9_-]+)\\s+([a-zA-Z0-9:_-]+)\\s+([a-zA-Z0-9_-]+)\\s+([\"#a-zA-Z0-9_-]+)\\s*>")
-
-internal data class ElementDto(
-    val name: String,
-    val children: List<String>,
-    val isMixed: Boolean
-)
-
-internal class AttributeDto(
-    val elementName: String,
-    val attributeName: String,
-    val type: String,
-    val value: String
-)
-
-internal data class InternalEntityDto(
-    val name: String,
-    val value: String
-)
-
-internal data class ExternalEntityDto(
-    val name: String,
-    val uri: String,
-)
