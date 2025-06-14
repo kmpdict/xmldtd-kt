@@ -22,7 +22,7 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
       - name: Build
-        run: ./gradlew build --scan
+        run: ./gradlew assemble
 
   publish-github:
     runs-on: macos-latest
