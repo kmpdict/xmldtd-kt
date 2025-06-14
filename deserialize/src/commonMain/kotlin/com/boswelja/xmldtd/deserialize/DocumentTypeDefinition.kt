@@ -79,6 +79,9 @@ public sealed interface ElementDefinition {
      */
     public val attributes: List<AttributeDefinition>
 
+    /**
+     * An optional comment that was specified in the definition, usually for documentation purposes.
+     */
     public val comment: String?
 
     /**
@@ -151,6 +154,8 @@ public sealed interface ElementDefinition {
  * @property attributeType The data type of the attribute. See [Type] for all possible types.
  * @property value Specifies whether the attribute is required, implied, has a default value, or
  * must have a fixed value. See [Value] for details.
+ * @property comment An optional comment that was specified in the definition, usually for
+ * documentation purposes.
  */
 public data class AttributeDefinition(
     val attributeName: String,

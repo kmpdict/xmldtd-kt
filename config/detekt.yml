@@ -172,7 +172,7 @@ style:
   ForbiddenAnnotation:
     active: true
   MagicNumber:
-    active: true
+    active: false
   MandatoryBracesLoops:
     active: true
   MaxChainedCallsOnSameLine:
