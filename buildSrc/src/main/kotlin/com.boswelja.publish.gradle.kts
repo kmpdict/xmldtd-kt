@@ -18,7 +18,7 @@ version = findProperty("version")!!
 afterEvaluate {
     publishing {
         repositories {
-            maven("https://maven.pkg.github.com/boswelja/xmldtd-kt") {
+            maven("https://maven.pkg.github.com/kmpdict/xmldtd-kt") {
                 name = "github"
                 credentials(PasswordCredentials::class)
             }
