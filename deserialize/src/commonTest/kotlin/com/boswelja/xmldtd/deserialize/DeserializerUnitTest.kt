@@ -136,7 +136,7 @@ class DeserializerUnitTest {
             comment = null,
         )
         assertEquals(
-            ElementDefinition.ParsedCharacterData(element.name, emptyList()),
+            ElementDefinition.ParsedCharacterData(element.name, emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,
@@ -156,7 +156,7 @@ class DeserializerUnitTest {
         )
 
         assertEquals(
-            ElementDefinition.Any(element.name, emptyList()),
+            ElementDefinition.Any(element.name, emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,
@@ -176,7 +176,7 @@ class DeserializerUnitTest {
         )
 
         assertEquals(
-            ElementDefinition.Empty(elementName = element.name, attributes = emptyList()),
+            ElementDefinition.Empty(elementName = element.name, attributes = emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,

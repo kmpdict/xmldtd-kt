@@ -79,12 +79,15 @@ public sealed interface ElementDefinition {
      */
     public val attributes: List<AttributeDefinition>
 
+    public val comment: String?
+
     /**
      * The element has no children. For example, in `!ELEMENT note EMPTY` there are no elements contained within `note`.
      */
     public data class Empty(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
     ) : ElementDefinition
 
     /**
@@ -94,6 +97,7 @@ public sealed interface ElementDefinition {
     public data class ParsedCharacterData(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
     ) : ElementDefinition
 
     /**
@@ -102,6 +106,7 @@ public sealed interface ElementDefinition {
     public data class Any(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
     ) : ElementDefinition
 
     /**
@@ -112,6 +117,7 @@ public sealed interface ElementDefinition {
     public data class WithChildren(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
         val children: List<ChildElementDefinition>,
     ) : ElementDefinition
 
@@ -121,6 +127,7 @@ public sealed interface ElementDefinition {
     public data class Mixed(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
         val containsPcData: Boolean,
         val children: List<ElementDefinition>,
     ) : ElementDefinition
@@ -132,6 +139,7 @@ public sealed interface ElementDefinition {
     public data class Either(
         override val elementName: String,
         override val attributes: List<AttributeDefinition>,
+        override val comment: String?,
         val options: List<ChildElementDefinition>
     ): ElementDefinition
 }
@@ -147,7 +155,8 @@ public sealed interface ElementDefinition {
 public data class AttributeDefinition(
     val attributeName: String,
     val attributeType: Type,
-    val value: Value
+    val value: Value,
+    val comment: String?,
 ) {
     public sealed interface Type {
         /**

@@ -128,7 +128,8 @@ internal fun buildElementDefinition(
                         val element = elements.firstOrNull { it.name == childName }
                         requireNotNull(element) { "Couldn't find a child with the name $childName in $elements" }
                         buildElementDefinition(element, childName, elements, attributes)
-                    }
+                    },
+                comment = element.comment,
             )
         }
         element.children.isNotEmpty() -> {
@@ -136,11 +137,13 @@ internal fun buildElementDefinition(
                 ElementDefinition.ParsedCharacterData(
                     elementName = elementName,
                     attributes = mappedAttrs,
+                    comment = element.comment,
                 )
             } else if (element.children.size == 1 && element.children.first() == "ANY") {
                 ElementDefinition.Any(
                     elementName = elementName,
                     attributes = mappedAttrs,
+                    comment = element.comment,
                 )
             } else {
                 ElementDefinition.WithChildren(
@@ -150,7 +153,8 @@ internal fun buildElementDefinition(
                         .map { childName ->
                             val childName = childName.trim()
                             buildChildElementDefinition(childName, elements, attributes)
-                        }
+                        },
+                    comment = element.comment,
                 )
             }
         }
@@ -158,6 +162,7 @@ internal fun buildElementDefinition(
             ElementDefinition.Empty(
                 elementName = elementName,
                 attributes = mappedAttrs,
+                comment = element.comment,
             )
         }
     }
@@ -198,7 +203,8 @@ internal fun buildAttribute(attribute: AttributeDto): AttributeDefinition {
     return AttributeDefinition(
         attributeName = attribute.attributeName,
         attributeType = type,
-        value = value
+        value = value,
+        comment = attribute.comment
     )
 }
 
