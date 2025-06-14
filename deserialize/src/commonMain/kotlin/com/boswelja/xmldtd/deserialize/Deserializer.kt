@@ -21,16 +21,16 @@ public fun DocumentTypeDefinition.Companion.fromSource(source: Source): Document
     while (line != null && line != "]>") {
         // TODO this runs all checks every time - not good
         ElementDto.fromLine(line)?.let {
-            elements.add(it)
+            elements.add(it.copy(comment = extractCommentFromNextLines(source)))
         }
         InternalEntityDto.fromLine(line)?.let {
-            internalEntities.add(it)
+            internalEntities.add(it.copy(comment = extractCommentFromNextLines(source)))
         }
         ExternalEntityDto.fromLine(line)?.let {
-            externalEntities.add(it)
+            externalEntities.add(it.copy(comment = extractCommentFromNextLines(source)))
         }
         AttributeDto.fromLine(line)?.let {
-            attributes.add(it)
+            attributes.add(it.copy(comment = extractCommentFromNextLines(source)))
         }
 
         line = source.readLine()?.trim()
