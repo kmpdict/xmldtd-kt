@@ -22,9 +22,11 @@ class DeserializerE2ETest {
                     AttributeDefinition(
                         attributeName = "xml:lang",
                         attributeType = AttributeDefinition.Type.CharacterData,
-                        value = AttributeDefinition.Value.Default("eng")
+                        value = AttributeDefinition.Value.Default("eng"),
+                        comment = null,
                     )
-                )
+                ),
+                comment = null,
             ),
             entities = emptyList(),
         )
@@ -39,6 +41,7 @@ class DeserializerE2ETest {
             result
         )
     }
+
     @Test
     fun `when dtd element children contains spaces, then deserialize succeeds`() {
         // Note the space between DATE and NAME in HOLIDAY
@@ -57,6 +60,7 @@ class DeserializerE2ETest {
                         elementDefinition = ElementDefinition.ParsedCharacterData(
                             elementName = "DATE",
                             attributes = emptyList(),
+                            comment = null,
                         ),
                         occurs = ChildElementDefinition.Occurs.Once,
                     ),
@@ -64,11 +68,13 @@ class DeserializerE2ETest {
                         elementDefinition = ElementDefinition.ParsedCharacterData(
                             elementName = "NAME",
                             attributes = emptyList(),
+                            comment = null,
                         ),
                         occurs = ChildElementDefinition.Occurs.Once,
                     ),
                 ),
-                attributes = emptyList()
+                attributes = emptyList(),
+                comment = null,
             ),
             entities = emptyList(),
         )
@@ -84,6 +90,58 @@ class DeserializerE2ETest {
         )
     }
 
+    @Test
+    fun `when dtd contains documentations, then deserialize succeeds`() {
+        // Note the space between DATE and NAME in HOLIDAY
+        val dtd = """
+            <!DOCTYPE HOLIDAY [
+            <!ELEMENT HOLIDAY (DATE, NAME)>
+            <!-- A holiday on some date -->
+            <!ELEMENT DATE (#PCDATA)>
+            <!--
+              The date that a holiday occurs on, in ISO8601 datetime format. -->
+            <!ELEMENT NAME (#PCDATA)>
+            <!-- The name of a holiday.
+              -->
+            ]>
+        """.trimIndent()
+        val expected = DocumentTypeDefinition(
+            rootElement = ElementDefinition.WithChildren(
+                elementName = "HOLIDAY",
+                children = listOf(
+                    ChildElementDefinition.Single(
+                        elementDefinition = ElementDefinition.ParsedCharacterData(
+                            elementName = "DATE",
+                            attributes = emptyList(),
+                            comment = "The date that a holiday occurs on, in ISO8601 datetime format.",
+                        ),
+                        occurs = ChildElementDefinition.Occurs.Once,
+                    ),
+                    ChildElementDefinition.Single(
+                        elementDefinition = ElementDefinition.ParsedCharacterData(
+                            elementName = "NAME",
+                            attributes = emptyList(),
+                            comment = "The name of a holiday.",
+                        ),
+                        occurs = ChildElementDefinition.Occurs.Once,
+                    ),
+                ),
+                attributes = emptyList(),
+                comment = "A holiday on some date",
+            ),
+            entities = emptyList(),
+        )
+
+        val source = Buffer()
+        source.writeString(dtd)
+        val result = DocumentTypeDefinition.fromSource(source)
+        source.close()
+
+        assertEquals(
+            expected,
+            result
+        )
+    }
     @Test
     fun `fromSource returns the correct type for valid DTD`() {
         ValidDtdSamples.forEach { (dtd, expected) ->
@@ -131,7 +189,8 @@ class DeserializerE2ETest {
                                 AttributeDefinition(
                                     attributeName = "NAME",
                                     attributeType = AttributeDefinition.Type.CharacterData,
-                                    value = AttributeDefinition.Value.Required
+                                    value = AttributeDefinition.Value.Required,
+                                    comment = null,
                                 )
                             ),
                             children = listOf(
@@ -142,14 +201,16 @@ class DeserializerE2ETest {
                                             AttributeDefinition(
                                                 attributeName = "CHAN",
                                                 attributeType = AttributeDefinition.Type.CharacterData,
-                                                value = AttributeDefinition.Value.Required
+                                                value = AttributeDefinition.Value.Required,
+                                                comment = null,
                                             )
                                         ),
                                         children = listOf(
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "BANNER",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
@@ -161,7 +222,8 @@ class DeserializerE2ETest {
                                                         ChildElementDefinition.Single(
                                                             elementDefinition = ElementDefinition.ParsedCharacterData(
                                                                 elementName = "DATE",
-                                                                attributes = emptyList()
+                                                                attributes = emptyList(),
+                                                                comment = null,
                                                             ),
                                                             occurs = ChildElementDefinition.Occurs.Once
                                                         ),
@@ -170,7 +232,8 @@ class DeserializerE2ETest {
                                                                 ChildElementDefinition.Single(
                                                                     elementDefinition = ElementDefinition.ParsedCharacterData(
                                                                         elementName = "HOLIDAY",
-                                                                        attributes = emptyList()
+                                                                        attributes = emptyList(),
+                                                                        comment = null,
                                                                     ),
                                                                     occurs = ChildElementDefinition.Occurs.Once
                                                                 ),
@@ -181,14 +244,16 @@ class DeserializerE2ETest {
                                                                             AttributeDefinition(
                                                                                 attributeType = AttributeDefinition.Type.CharacterData,
                                                                                 attributeName = "VTR",
-                                                                                value = AttributeDefinition.Value.Implied
+                                                                                value = AttributeDefinition.Value.Implied,
+                                                                                comment = null,
                                                                             )
                                                                         ),
                                                                         children = listOf(
                                                                             ChildElementDefinition.Single(
                                                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                                                     elementName = "TIME",
-                                                                                    attributes = emptyList()
+                                                                                    attributes = emptyList(),
+                                                                                    comment = null,
                                                                                 ),
                                                                                 occurs = ChildElementDefinition.Occurs.Once
                                                                             ),
@@ -199,40 +264,48 @@ class DeserializerE2ETest {
                                                                                         AttributeDefinition(
                                                                                             attributeType = AttributeDefinition.Type.CharacterData,
                                                                                             attributeName = "RATING",
-                                                                                            value = AttributeDefinition.Value.Implied
+                                                                                            value = AttributeDefinition.Value.Implied,
+                                                                                            comment = null,
                                                                                         ),
                                                                                         AttributeDefinition(
                                                                                             attributeType = AttributeDefinition.Type.CharacterData,
                                                                                             attributeName = "LANGUAGE",
-                                                                                            value = AttributeDefinition.Value.Implied
+                                                                                            value = AttributeDefinition.Value.Implied,
+                                                                                            comment = null,
                                                                                         ),
-                                                                                    )
+                                                                                    ),
+                                                                                    comment = null,
                                                                                 ),
                                                                                 occurs = ChildElementDefinition.Occurs.Once
                                                                             ),
                                                                             ChildElementDefinition.Single(
                                                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                                                     elementName = "DESCRIPTION",
-                                                                                    attributes = emptyList()
+                                                                                    attributes = emptyList(),
+                                                                                    comment = null,
                                                                                 ),
                                                                                 occurs = ChildElementDefinition.Occurs.AtMostOnce
                                                                             ),
-                                                                        )
+                                                                        ),
+                                                                        comment = null,
                                                                     ),
                                                                     occurs = ChildElementDefinition.Occurs.AtLeastOnce
                                                                 )
                                                             ),
                                                             occurs = ChildElementDefinition.Occurs.AtLeastOnce
                                                         )
-                                                    )
+                                                    ),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.AtLeastOnce
                                             )
-                                        )
+                                        ),
+                                        comment = null,
                                     ),
                                     occurs = ChildElementDefinition.Occurs.AtLeastOnce
                                 )
-                            )
+                            ),
+                            comment = null,
                         ),
                         entities = emptyList()
                     ),
@@ -270,65 +343,76 @@ class DeserializerE2ETest {
                                             AttributeDefinition(
                                                 attributeName = "AUTHOR",
                                                 attributeType = AttributeDefinition.Type.CharacterData,
-                                                value = AttributeDefinition.Value.Required
+                                                value = AttributeDefinition.Value.Required,
+                                                comment = null,
                                             ),
                                             AttributeDefinition(
                                                 attributeName = "EDITOR",
                                                 attributeType = AttributeDefinition.Type.CharacterData,
-                                                value = AttributeDefinition.Value.Implied
+                                                value = AttributeDefinition.Value.Implied,
+                                                comment = null,
                                             ),
                                             AttributeDefinition(
                                                 attributeName = "DATE",
                                                 attributeType = AttributeDefinition.Type.CharacterData,
-                                                value = AttributeDefinition.Value.Implied
+                                                value = AttributeDefinition.Value.Implied,
+                                                comment = null,
                                             ),
                                             AttributeDefinition(
                                                 attributeName = "EDITION",
                                                 attributeType = AttributeDefinition.Type.CharacterData,
-                                                value = AttributeDefinition.Value.Implied
+                                                value = AttributeDefinition.Value.Implied,
+                                                comment = null,
                                             ),
                                         ),
                                         children = listOf(
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "HEADLINE",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "BYLINE",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "LEAD",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "BODY",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
                                             ChildElementDefinition.Single(
                                                 elementDefinition = ElementDefinition.ParsedCharacterData(
                                                     elementName = "NOTES",
-                                                    attributes = emptyList()
+                                                    attributes = emptyList(),
+                                                    comment = null,
                                                 ),
                                                 occurs = ChildElementDefinition.Occurs.Once
                                             ),
-                                        )
+                                        ),
+                                        comment = null,
                                     ),
                                     occurs = ChildElementDefinition.Occurs.AtLeastOnce
                                 )
-                            )
+                            ),
+                            comment = null,
                         ),
                         entities = listOf(
                             Entity.Internal(
@@ -355,6 +439,7 @@ class DeserializerE2ETest {
                     attributes = emptyList(),
                     containsPcData = true,
                     children = emptyList(),
+                    comment = null,
                 ),
                 entities = emptyList()
             )

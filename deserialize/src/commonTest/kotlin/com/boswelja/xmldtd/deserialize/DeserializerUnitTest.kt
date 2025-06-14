@@ -12,7 +12,8 @@ class DeserializerUnitTest {
             elementName = "element",
             attributeName = "attribute",
             type = "some-invalid-type",
-            value = "#REQUIRED"
+            value = "#REQUIRED",
+            comment = null,
         )
         assertFailsWith<IllegalArgumentException> {
             buildAttribute(invalidAttr)
@@ -25,7 +26,8 @@ class DeserializerUnitTest {
             elementName = "element",
             attributeName = "attribute",
             type = "CDATA",
-            value = "some-invalid-data"
+            value = "some-invalid-data",
+            comment = null,
         )
         assertFailsWith<IllegalArgumentException> {
             buildAttribute(invalidAttr)
@@ -46,7 +48,8 @@ class DeserializerUnitTest {
                 elementName = "element",
                 attributeName = "attribute",
                 type = "CDATA",
-                value = value
+                value = value,
+                comment = null,
             )
             val attr = buildAttribute(attrDto)
             assertEquals(
@@ -77,7 +80,8 @@ class DeserializerUnitTest {
                 elementName = "element",
                 attributeName = "attribute",
                 type = type,
-                value = "#REQUIRED"
+                value = "#REQUIRED",
+                comment = null,
             )
             val attr = buildAttribute(attrDto)
             assertEquals(
@@ -93,6 +97,7 @@ class DeserializerUnitTest {
             name = "element",
             children = listOf("child1", "child2"),
             isMixed = false,
+            comment = null,
         )
         assertFailsWith<IllegalArgumentException> {
             buildElementDefinition(
@@ -110,6 +115,7 @@ class DeserializerUnitTest {
             name = "element",
             children = listOf("child1", "child2"),
             isMixed = true,
+            comment = null,
         )
         assertFailsWith<IllegalArgumentException> {
             buildElementDefinition(
@@ -126,10 +132,11 @@ class DeserializerUnitTest {
         val element = ElementDto(
             name = "element",
             children = listOf("#PCDATA"),
-            isMixed = false
+            isMixed = false,
+            comment = null,
         )
         assertEquals(
-            ElementDefinition.ParsedCharacterData(element.name, emptyList()),
+            ElementDefinition.ParsedCharacterData(element.name, emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,
@@ -144,11 +151,12 @@ class DeserializerUnitTest {
         val element = ElementDto(
             name = "element",
             children = listOf("ANY"),
-            isMixed = false
+            isMixed = false,
+            comment = null,
         )
 
         assertEquals(
-            ElementDefinition.Any(element.name, emptyList()),
+            ElementDefinition.Any(element.name, emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,
@@ -163,11 +171,12 @@ class DeserializerUnitTest {
         val element = ElementDto(
             name = "element",
             children = emptyList(),
-            isMixed = false
+            isMixed = false,
+            comment = null,
         )
 
         assertEquals(
-            ElementDefinition.Empty(elementName = element.name, attributes = emptyList()),
+            ElementDefinition.Empty(elementName = element.name, attributes = emptyList(), null),
             buildElementDefinition(
                 element = element,
                 elementName = element.name,

@@ -159,6 +159,11 @@ public class DataClassGenerator(
             TypeSpec.objectBuilder(className.simpleName)
                 .addProperties(properties)
                 .addModifiers(KModifier.DATA)
+                .apply {
+                    element.comment?.let {
+                        addKdoc(it)
+                    }
+                }
                 .addAnnotation(Serializable::class)
                 .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
                 .addAnnotation(AnnotationSpec.builder(SerialName::class)
@@ -179,6 +184,11 @@ public class DataClassGenerator(
                     .addMember("value = %S", element.elementName)
                     .build())
                 .addModifiers(KModifier.DATA)
+                .apply {
+                    element.comment?.let {
+                        addKdoc(it)
+                    }
+                }
                 .addTypes(nestedTypes)
                 .build()
         }
@@ -224,6 +234,7 @@ public class DataClassGenerator(
                             addAnnotation(AnnotationSpec.builder(SerialName::class)
                                 .addMember("value = %S", childElementDefinition.elementDefinition.elementName)
                                 .build())
+                            childElementDefinition.elementDefinition.comment?.let { addKdoc(it) }
                         }
                     }
                     .initializer(propertyName)
@@ -316,6 +327,9 @@ public class DataClassGenerator(
                         .addAnnotation(AnnotationSpec.builder(SerialName::class)
                             .addMember("value = %S", attribute.attributeName)
                             .build())
+                        .apply {
+                            attribute.comment?.let { addKdoc(it) }
+                        }
                         .initializer((attribute.value as AttributeDefinition.Value.Fixed).value)
                         .build()
                 )
@@ -340,6 +354,9 @@ public class DataClassGenerator(
                         .addAnnotation(AnnotationSpec.builder(SerialName::class)
                             .addMember("value = %S", attribute.attributeName)
                             .build())
+                        .apply {
+                            attribute.comment?.let { addKdoc(it) }
+                        }
                         .initializer(propertyName)
                         .build()
                 )

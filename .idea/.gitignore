@@ -1,3 +1,21 @@
-# Default ignored files
 /shelf/
+/artifacts/
+/caches/
+/libraries/
+/inspectionProfiles/
+/modules/
 /workspace.xml
+/modules.xml
+/navEditor.xml
+/assetWizardSettings.xml
+/AndroidProjectSystem.xml
+/androidTestResultsUserPreferences.xml
+/compiler.xml
+/deploymentTargetSelector.xml
+/deviceManager.xml
+/gradle.xml
+/kotlinc.xml
+/migrations.xml
+/misc.xml
+/runConfigurations.xml
+/.name
