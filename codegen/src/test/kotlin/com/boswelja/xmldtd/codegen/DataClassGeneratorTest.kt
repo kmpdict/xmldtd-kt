@@ -35,6 +35,61 @@ class DataClassGeneratorTest {
     }
 
     @Test
+    fun `testGenerateDataClass should_generate_prefixes`() {
+        val testCases = mapOf(
+            DocumentTypeDefinition(
+                rootElement = ElementDefinition.ParsedCharacterData(
+                    elementName = "prefixes",
+                    attributes = listOf(
+                        AttributeDefinition(
+                            attributeName = "xml:name",
+                            attributeType = AttributeDefinition.Type.CharacterData,
+                            value = AttributeDefinition.Value.Required,
+                            comment = null,
+                        )
+                    ),
+                    comment = null,
+                ),
+                entities = emptyList()
+            ) to """
+                |package $packageName
+                |
+                |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlSerialName
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
+                |
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "prefixes")
+                |public data class Prefixes(
+                |  @XmlElement(value = false)
+                |  @SerialName(value = "xml:name")
+                |  @XmlSerialName(
+                |    prefix = "xml",
+                |    value = "name",
+                |  )
+                |  public val name: String,
+                |  @XmlValue
+                |  public val content: String,
+                |)
+                |
+            """.trimMargin(),
+        )
+
+        testCases.forEach { (input, expected) ->
+            generator.writeDtdToTarget(input)
+
+            assertEquals(
+                expected,
+                testDir.resolve("com/example/test/Prefixes.kt").readText()
+            )
+        }
+    }
+
+    @Test
     fun `testGenerateDataClass should generate comments`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
