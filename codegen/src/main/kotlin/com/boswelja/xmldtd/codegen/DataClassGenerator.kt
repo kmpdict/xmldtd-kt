@@ -19,6 +19,7 @@ import com.squareup.kotlinpoet.asTypeName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
 import java.nio.file.Path
 
@@ -318,6 +319,15 @@ public class DataClassGenerator(
                         .apply {
                             attribute.comment?.let { addKdoc(it) }
                         }
+                        .apply {
+                            if (attribute.attributeName.contains(":")) {
+                                val (prefix, name) = attribute.attributeName.split(":")
+                                addAnnotation(AnnotationSpec.builder(XmlSerialName::class)
+                                    .addMember("prefix = %S", prefix)
+                                    .addMember("value = %S", name)
+                                    .build())
+                            }
+                        }
                         .initializer((attribute.value as AttributeDefinition.Value.Fixed).value)
                         .build()
                 )
@@ -344,6 +354,15 @@ public class DataClassGenerator(
                             .build())
                         .apply {
                             attribute.comment?.let { addKdoc(it) }
+                        }
+                        .apply {
+                            if (attribute.attributeName.contains(":")) {
+                                val (prefix, name) = attribute.attributeName.split(":")
+                                addAnnotation(AnnotationSpec.builder(XmlSerialName::class)
+                                    .addMember("prefix = %S", prefix)
+                                    .addMember("value = %S", name)
+                                    .build())
+                            }
                         }
                         .initializer(propertyName)
                         .build()
