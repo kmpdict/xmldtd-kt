@@ -25,3 +25,20 @@ internal fun String.stripPrefix(separator: String = ":"): String {
         this
     }
 }
+
+internal fun String.toPlural(): String {
+    if (isEmpty()) return this
+
+    val isUpper = last().isUpperCase()
+    return if (endsWith("y", ignoreCase = true)) {
+        this.dropLast(1) + if (isUpper) "IES" else "ies"
+    } else if (endsWith("us", ignoreCase = true)) {
+        this.dropLast(2) + if (isUpper) "I" else "i"
+    } else if (endsWith("s", ignoreCase = true) ||
+        endsWith("h", ignoreCase = true) ||
+        endsWith("x", ignoreCase = true)) {
+        this + if (isUpper) "ES" else "es"
+    } else {
+        this + if (isUpper) "S" else "s"
+    }
+}

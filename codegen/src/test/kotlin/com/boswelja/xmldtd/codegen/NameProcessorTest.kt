@@ -43,4 +43,26 @@ class NameProcessorTest {
             )
         }
     }
+
+    @Test
+    fun `toPlural()`() {
+        val testCases = mapOf(
+            "entry" to "entries",
+            "ENTRY" to "ENTRIES",
+            "gloss" to "glosses",
+            "GLOSS" to "GLOSSES",
+            "cactus" to "cacti",
+            "focus" to "foci",
+            "tax" to "taxes",
+            "CasePreserve" to "CasePreserves",
+            "" to ""
+        )
+
+        testCases.forEach { (input, expected) ->
+            assertEquals(
+                expected,
+                input.toPlural()
+            )
+        }
+    }
 }

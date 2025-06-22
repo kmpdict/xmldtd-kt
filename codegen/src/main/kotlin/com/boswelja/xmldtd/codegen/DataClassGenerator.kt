@@ -206,7 +206,7 @@ public class DataClassGenerator(
             // If the type is a List, pluralize the name
             val propertyName = if (childElementDefinition.occurs == ChildElementDefinition.Occurs.ZeroOrMore ||
                 childElementDefinition.occurs == ChildElementDefinition.Occurs.AtLeastOnce) {
-                "${childTypes.rootClassName.simpleName.toCamelCase()}s"
+                childTypes.rootClassName.simpleName.toCamelCase().toPlural()
             } else {
                 childTypes.rootClassName.simpleName.toCamelCase()
             }
