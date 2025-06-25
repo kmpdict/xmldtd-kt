@@ -2,7 +2,7 @@
 agp = "8.10.1"
 kotlin = "2.1.21"
 
-kotlinx-io = "0.7.0"
+kotlinx-io = "0.8.0"
 
 kotlinpoet = "2.2.0"
 
