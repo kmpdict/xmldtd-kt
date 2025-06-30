@@ -370,6 +370,7 @@ class DataClassGeneratorTest {
                 |
                 |import kotlin.String
                 |import kotlin.collections.List
+                |import kotlin.collections.Map
                 |import kotlinx.serialization.SerialName
                 |import kotlinx.serialization.Serializable
                 |import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -455,6 +456,12 @@ class DataClassGeneratorTest {
                 |  @XmlElement(value = true)
                 |  @SerialName(value = "ARTICLE")
                 |  public val articles: List<Article>,
+                |)
+                |
+                |public val NestedInternalEntities: Map<String, String> = mapOf(
+                |  "NEWSPAPER" to "Vervet Logic Times",
+                |  "PUBLISHER" to "Vervet Logic Press",
+                |  "COPYRIGHT" to "Copyright 1998 Vervet Logic Press",
                 |)
                 |
             """.trimMargin()

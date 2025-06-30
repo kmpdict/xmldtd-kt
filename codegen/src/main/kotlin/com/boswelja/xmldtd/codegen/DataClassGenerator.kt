@@ -4,8 +4,10 @@ import com.boswelja.xmldtd.deserialize.AttributeDefinition
 import com.boswelja.xmldtd.deserialize.ChildElementDefinition
 import com.boswelja.xmldtd.deserialize.DocumentTypeDefinition
 import com.boswelja.xmldtd.deserialize.ElementDefinition
+import com.boswelja.xmldtd.deserialize.Entity
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -40,8 +42,64 @@ public class DataClassGenerator(
         val generatedTypes = generateTypeSpecForElement(dtd.rootElement)
         FileSpec.builder(generatedTypes.rootClassName)
             .addTypes(generatedTypes.topLevelTypes)
+            .addProperties(generatePropertiesForEntities(dtd.rootElement.elementName, dtd.entities))
             .build()
             .writeTo(targetDir)
+    }
+
+    internal fun generatePropertiesForEntities(dtdName: String, entities: List<Entity>): List<PropertySpec> {
+        val internalEntities = mutableMapOf<String, String>()
+        val externalEntities = mutableMapOf<String, String>()
+
+        entities.forEach { entity ->
+            when (entity) {
+                is Entity.External -> externalEntities[entity.name] = entity.url
+                is Entity.Internal -> internalEntities[entity.name] = entity.value
+            }
+        }
+
+        val properties = mutableListOf<PropertySpec>()
+
+        if (internalEntities.isNotEmpty()) {
+            val builder = CodeBlock.builder()
+                .addStatement("mapOf(")
+                .indent()
+            internalEntities.forEach { (key, value) ->
+                builder.addStatement("%S to %S,", key, value)
+            }
+            builder
+                .unindent()
+                .addStatement(")")
+            properties.add(
+                PropertySpec.builder(
+                    "${dtdName.toPascalCase()}InternalEntities",
+                    Map::class.parameterizedBy(String::class, String::class)
+                )
+                    .initializer(builder.build())
+                    .build()
+            )
+        }
+        if (externalEntities.isNotEmpty()) {
+            val builder = CodeBlock.builder()
+                .addStatement("mapOf(")
+                .indent()
+            externalEntities.forEach { (key, value) ->
+                builder.addStatement("%S to %S,", key, value)
+            }
+            builder
+                .unindent()
+                .addStatement(")")
+            properties.add(
+                PropertySpec.builder(
+                    "${dtdName.toPascalCase()}ExternalEntities",
+                    Map::class.parameterizedBy(String::class, String::class)
+                )
+                    .initializer(builder.build())
+                    .build()
+            )
+        }
+
+        return properties
     }
 
     internal fun generateTypeSpecForElement(element: ElementDefinition): GeneratedTypes {
