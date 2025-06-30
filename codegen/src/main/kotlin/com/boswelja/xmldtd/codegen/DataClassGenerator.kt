@@ -51,10 +51,10 @@ public class DataClassGenerator(
         val internalEntities = mutableMapOf<String, String>()
         val externalEntities = mutableMapOf<String, String>()
 
-        entities.forEach {
-            when (it) {
-                is Entity.External -> externalEntities[it.name] = it.url
-                is Entity.Internal -> internalEntities[it.name] = it.value
+        entities.forEach { entity ->
+            when (entity) {
+                is Entity.External -> externalEntities[entity.name] = entity.url
+                is Entity.Internal -> internalEntities[entity.name] = entity.value
             }
         }
 
@@ -71,7 +71,10 @@ public class DataClassGenerator(
                 .unindent()
                 .addStatement(")")
             properties.add(
-                PropertySpec.builder("${dtdName.toPascalCase()}InternalEntities", Map::class.parameterizedBy(String::class, String::class))
+                PropertySpec.builder(
+                    "${dtdName.toPascalCase()}InternalEntities",
+                    Map::class.parameterizedBy(String::class, String::class)
+                )
                     .initializer(builder.build())
                     .build()
             )
@@ -87,7 +90,10 @@ public class DataClassGenerator(
                 .unindent()
                 .addStatement(")")
             properties.add(
-                PropertySpec.builder("${dtdName.toPascalCase()}ExternalEntities", Map::class.parameterizedBy(String::class, String::class))
+                PropertySpec.builder(
+                    "${dtdName.toPascalCase()}ExternalEntities",
+                    Map::class.parameterizedBy(String::class, String::class)
+                )
                     .initializer(builder.build())
                     .build()
             )
