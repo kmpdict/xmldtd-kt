@@ -8,6 +8,49 @@ import kotlin.test.assertEquals
 class DeserializerE2ETest {
 
     @Test
+    fun `when dtd has multiline attlist, then deserialize succeeds`() {
+        val dtd = """
+            <!DOCTYPE NAME [
+            <!ELEMENT NAME (#PCDATA)>
+            <!ATTLIST NAME
+            gender CDATA #IMPLIED
+            lang CDATA "eng">
+            ]>
+        """.trimIndent()
+        val expected = DocumentTypeDefinition(
+            rootElement = ElementDefinition.ParsedCharacterData(
+                elementName = "NAME",
+                attributes = listOf(
+                    AttributeDefinition(
+                        attributeName = "gender",
+                        attributeType = AttributeDefinition.Type.CharacterData,
+                        value = AttributeDefinition.Value.Implied,
+                        comment = null,
+                    ),
+                    AttributeDefinition(
+                        attributeName = "lang",
+                        attributeType = AttributeDefinition.Type.CharacterData,
+                        value = AttributeDefinition.Value.Default("eng"),
+                        comment = null,
+                    ),
+                ),
+                comment = null,
+            ),
+            entities = emptyList(),
+        )
+
+        val source = Buffer()
+        source.writeString(dtd)
+        val result = DocumentTypeDefinition.fromSource(source)
+        source.close()
+
+        assertEquals(
+            expected,
+            result
+        )
+    }
+
+    @Test
     fun `when dtd attlist children have colons, then deserialize succeeds`() {
         val dtd = """
             <!DOCTYPE NAME [
