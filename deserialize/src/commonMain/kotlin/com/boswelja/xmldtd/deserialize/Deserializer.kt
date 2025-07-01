@@ -19,20 +19,26 @@ public fun DocumentTypeDefinition.Companion.fromSource(source: Source): Document
 
     line = source.readLine()?.trim()
     while (line != null && line != "]>") {
-        // TODO this runs all checks every time - not good
         ElementDto.fromLine(line)?.let {
             elements.add(it.copy(comment = extractCommentFromNextLines(source)))
+            line = source.readLine()?.trim()
+            continue
         }
         InternalEntityDto.fromLine(line)?.let {
             internalEntities.add(it.copy(comment = extractCommentFromNextLines(source)))
+            line = source.readLine()?.trim()
+            continue
         }
         ExternalEntityDto.fromLine(line)?.let {
             externalEntities.add(it.copy(comment = extractCommentFromNextLines(source)))
+            line = source.readLine()?.trim()
+            continue
         }
         AttributeDto.fromLine(line)?.let {
             attributes.add(it.copy(comment = extractCommentFromNextLines(source)))
+            line = source.readLine()?.trim()
+            continue
         }
-
         line = source.readLine()?.trim()
     }
 
@@ -133,29 +139,33 @@ internal fun buildElementDefinition(
             )
         }
         element.children.isNotEmpty() -> {
-            if (element.children.size == 1 && element.children.first() == "#PCDATA") {
-                ElementDefinition.ParsedCharacterData(
-                    elementName = elementName,
-                    attributes = mappedAttrs,
-                    comment = element.comment,
-                )
-            } else if (element.children.size == 1 && element.children.first() == "ANY") {
-                ElementDefinition.Any(
-                    elementName = elementName,
-                    attributes = mappedAttrs,
-                    comment = element.comment,
-                )
-            } else {
-                ElementDefinition.WithChildren(
-                    elementName = elementName,
-                    attributes = mappedAttrs,
-                    children = element.children
-                        .map { childName ->
-                            val childName = childName.trim()
-                            buildChildElementDefinition(childName, elements, attributes)
-                        },
-                    comment = element.comment,
-                )
+            when (element.children.size) {
+                1 if element.children.first() == "#PCDATA" -> {
+                    ElementDefinition.ParsedCharacterData(
+                        elementName = elementName,
+                        attributes = mappedAttrs,
+                        comment = element.comment,
+                    )
+                }
+                1 if element.children.first() == "ANY" -> {
+                    ElementDefinition.Any(
+                        elementName = elementName,
+                        attributes = mappedAttrs,
+                        comment = element.comment,
+                    )
+                }
+                else -> {
+                    ElementDefinition.WithChildren(
+                        elementName = elementName,
+                        attributes = mappedAttrs,
+                        children = element.children
+                            .map { childName ->
+                                val childName = childName.trim()
+                                buildChildElementDefinition(childName, elements, attributes)
+                            },
+                        comment = element.comment,
+                    )
+                }
             }
         }
         else -> {
