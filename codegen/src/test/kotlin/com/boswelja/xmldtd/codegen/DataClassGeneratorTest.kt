@@ -35,7 +35,7 @@ class DataClassGeneratorTest {
     }
 
     @Test
-    fun `testGenerateDataClass should_generate_prefixes`() {
+    fun `writeDtdToTarget should generate prefixes`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
                 rootElement = ElementDefinition.ParsedCharacterData(
@@ -90,7 +90,7 @@ class DataClassGeneratorTest {
     }
 
     @Test
-    fun `testGenerateDataClass should generate comments`() {
+    fun `writeDtdToTarget should generate comments`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
                 rootElement = ElementDefinition.ParsedCharacterData(
@@ -146,7 +146,7 @@ class DataClassGeneratorTest {
     }
 
     @Test
-    fun `testGenerateDataClass should generate with no nested elements`() {
+    fun `writeDtdToTarget should generate with no nested elements`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
                 rootElement = ElementDefinition.ParsedCharacterData(
@@ -266,7 +266,7 @@ class DataClassGeneratorTest {
     }
 
     @Test
-    fun `testGenerateDataClasses should generate nested elements`() {
+    fun `writeDtdToTarget should generate nested elements`() {
         val testCases = mapOf(
             DocumentTypeDefinition(
                 rootElement = ElementDefinition.WithChildren(
@@ -474,6 +474,79 @@ class DataClassGeneratorTest {
             assertEquals(
                 expected,
                 testDir.resolve("com/example/test/Nested.kt").readText()
+            )
+        }
+    }
+
+    @Test
+    fun `writeDtdToTarget should generate either elements`() {
+        val testCases = mapOf(
+            DocumentTypeDefinition(
+                rootElement = ElementDefinition.Either(
+                    elementName = "date_or_time",
+                    attributes = emptyList(),
+                    comment = "Holds either a date or a time, but never both.",
+                    options = listOf(
+                        ChildElementDefinition.Single(
+                            occurs = ChildElementDefinition.Occurs.Once,
+                            elementDefinition = ElementDefinition.ParsedCharacterData(
+                                elementName = "date",
+                                attributes = emptyList(),
+                                comment = "An ISO8601 date."
+                            )
+                        ),
+                        ChildElementDefinition.Single(
+                            occurs = ChildElementDefinition.Occurs.Once,
+                            elementDefinition = ElementDefinition.ParsedCharacterData(
+                                elementName = "time",
+                                attributes = emptyList(),
+                                comment = "An ISO8601 time."
+                            )
+                        ),
+                    )
+                ),
+                entities = emptyList()
+            ) to """
+                |package $packageName
+                |
+                |import kotlin.String
+                |import kotlinx.serialization.SerialName
+                |import kotlinx.serialization.Serializable
+                |import nl.adaptivity.xmlutil.serialization.XmlElement
+                |import nl.adaptivity.xmlutil.serialization.XmlValue
+                |
+                |/**
+                | * Holds either a date or a time, but never both.
+                | */
+                |@Serializable
+                |@XmlElement(value = true)
+                |@SerialName(value = "no-nested-data")
+                |public sealed interface DateOrTime {
+                |  /**
+                |   * An ISO8601 date.
+                |   */
+                |  public data class Date(
+                |    public val content: String,
+                |  ) : DateOrTime
+                |
+                |  /**
+                |   * An ISO8601 time.
+                |   */
+                |  public data class Time(
+                |    public val content: String,
+                |  ) : DateOrTime
+                |}
+                |
+            """.trimIndent()
+        )
+
+        testCases.forEach { (input, expected) ->
+            generator.writeDtdToTarget(input)
+            println(input)
+
+            assertEquals(
+                expected,
+                testDir.resolve("com/example/test/DateOrTime.kt").readText()
             )
         }
     }
