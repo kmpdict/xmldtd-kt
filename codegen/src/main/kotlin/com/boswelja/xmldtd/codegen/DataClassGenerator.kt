@@ -210,7 +210,47 @@ public class DataClassGenerator(
                 )
             }
             is ElementDefinition.Either -> {
-                // TODO We haven't implemented this yet, this will just silently fail!
+                val rootTypeBuilder = TypeSpec.interfaceBuilder(className)
+                    .addModifiers(KModifier.SEALED)
+                element.options
+                    .map { generateTypesForChild(it) }
+                    .forEach { generatedTypes ->
+                        val generatedSealedSubtypes = generatedTypes.topLevelTypes.map {
+                            if (it.name == generatedTypes.rootClassName.simpleName) {
+                                it.toBuilder()
+                                    .addSuperinterface(className)
+                                    .primaryConstructor(
+                                        it.primaryConstructor?.toBuilder()
+                                            ?.addParameters(parameters)
+                                            ?.build()
+                                    )
+                                    .build()
+                            } else {
+                                it
+                            }
+                        }
+                        nestedTypes.addAll(generatedSealedSubtypes)
+                    }
+                val rootType = rootTypeBuilder
+                    .apply {
+                        element.comment?.let {
+                            addKdoc(it)
+                        }
+                    }
+                    .addProperties(properties)
+                    .addTypes(nestedTypes)
+                    .addAnnotation(Serializable::class)
+                    .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+                    .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                        .addMember("value = %S", element.elementName)
+                        .build())
+                    .build()
+
+                types.add(rootType)
+                return GeneratedTypes(
+                    rootClassName = className,
+                    topLevelTypes = types
+                )
             }
         }
 
