@@ -520,24 +520,32 @@ class DataClassGeneratorTest {
                 | */
                 |@Serializable
                 |@XmlElement(value = true)
-                |@SerialName(value = "no-nested-data")
+                |@SerialName(value = "date_or_time")
                 |public sealed interface DateOrTime {
                 |  /**
                 |   * An ISO8601 date.
                 |   */
+                |  @Serializable
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "date")
                 |  public data class Date(
+                |    @XmlValue
                 |    public val content: String,
                 |  ) : DateOrTime
                 |
                 |  /**
                 |   * An ISO8601 time.
                 |   */
+                |  @Serializable
+                |  @XmlElement(value = true)
+                |  @SerialName(value = "time")
                 |  public data class Time(
+                |    @XmlValue
                 |    public val content: String,
                 |  ) : DateOrTime
                 |}
                 |
-            """.trimIndent()
+            """.trimMargin()
         )
 
         testCases.forEach { (input, expected) ->
