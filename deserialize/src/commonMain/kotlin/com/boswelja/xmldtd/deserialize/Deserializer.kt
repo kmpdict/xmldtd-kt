@@ -39,6 +39,11 @@ public fun DocumentTypeDefinition.Companion.fromSource(source: Source): Document
             line = source.readLine()?.trim()
             continue
         }
+        AttributeDto.fromLines(line, source)?.let {
+            attributes.addAll(it)
+            line = source.readLine()?.trim()
+            continue
+        }
         line = source.readLine()?.trim()
     }
 
