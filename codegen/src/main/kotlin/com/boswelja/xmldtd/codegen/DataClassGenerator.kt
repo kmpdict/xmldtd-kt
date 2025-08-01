@@ -416,9 +416,8 @@ public class DataClassGenerator(
                         }
                         .apply {
                             if (attribute.attributeName.contains(":")) {
-                                val (prefix, name) = attribute.attributeName.split(":")
+                                val (_, name) = attribute.attributeName.split(":")
                                 addAnnotation(AnnotationSpec.builder(XmlSerialName::class)
-                                    .addMember("prefix = %S", prefix)
                                     .addMember("value = %S", name)
                                     .build())
                                 addAnnotation(AnnotationSpec.builder(SerialName::class)
@@ -456,9 +455,8 @@ public class DataClassGenerator(
                         }
                         .apply {
                             if (attribute.attributeName.contains(":")) {
-                                val (prefix, name) = attribute.attributeName.split(":")
+                                val (_, name) = attribute.attributeName.split(":")
                                 addAnnotation(AnnotationSpec.builder(XmlSerialName::class)
-                                    .addMember("prefix = %S", prefix)
                                     .addMember("value = %S", name)
                                     .build())
                                 addAnnotation(AnnotationSpec.builder(SerialName::class)
