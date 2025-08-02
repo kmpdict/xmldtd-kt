@@ -66,7 +66,10 @@ class DataClassGeneratorTest {
                 |@SerialName(value = "prefixes")
                 |public data class Prefixes(
                 |  @XmlElement(value = false)
-                |  @XmlSerialName(value = "name")
+                |  @XmlSerialName(
+                |    namespace = "xml",
+                |    value = "name",
+                |  )
                 |  @SerialName(value = "name")
                 |  public val name: String,
                 |  @XmlValue
