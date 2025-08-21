@@ -35,19 +35,84 @@ public class DataClassGenerator(
     private val packageName: String,
     private val targetDir: Path
 ) {
+    internal val PcDataClassName = ClassName(packageName, "ParsedCharacterData")
+
     /**
      * Writes the provided [DocumentTypeDefinition] to the specified [targetDir].
      */
     public fun writeDtdToTarget(dtd: DocumentTypeDefinition) {
-        val generatedTypes = generateTypeSpecForElement(dtd.rootElement)
-        FileSpec.builder(generatedTypes.rootClassName)
-            .addTypes(generatedTypes.topLevelTypes)
-            .addProperties(generatePropertiesForEntities(dtd.rootElement.elementName, dtd.entities))
-            .build()
+        buildFileSpec(dtd)
             .writeTo(targetDir)
     }
 
-    internal fun generatePropertiesForEntities(dtdName: String, entities: List<Entity>): List<PropertySpec> {
+    internal fun buildFileSpec(dtd: DocumentTypeDefinition): FileSpec {
+        val generatedTypes = generateTypeSpecForElement(dtd.rootElement)
+        return FileSpec.builder(generatedTypes.rootClassName)
+            .addTypes(generatedTypes.topLevelTypes)
+            .addTypes(generateXmlDtdTypes(dtd.entities))
+            .build()
+    }
+
+    internal fun generateXmlDtdTypes(entities: List<Entity>): List<TypeSpec> {
+        // PCData
+        val entities = generatePropertiesForEntities(entities)
+        val parsedCharacterDataBuilder = TypeSpec.classBuilder(PcDataClassName)
+            .addModifiers(KModifier.VALUE)
+            .addAnnotation(JvmInline::class)
+        if (entities.isNotEmpty()) {
+            parsedCharacterDataBuilder
+                .addProperty(
+                    PropertySpec.builder("rawValue", String::class)
+                        .addModifiers(KModifier.INTERNAL)
+                        .initializer("rawValue")
+                        .build()
+                )
+                .primaryConstructor(
+                    FunSpec.constructorBuilder()
+                        .addParameter("rawValue", String::class)
+                        .build()
+                )
+                .addFunction(
+                    FunSpec.builder("parse")
+                        .addParameter(
+                            ParameterSpec.builder("entities", Map::class.parameterizedBy(String::class, String::class))
+                                .defaultValue("InternalEntities")
+                                .build()
+                        )
+                        .returns(String::class)
+                        .addCode(
+                            CodeBlock.builder()
+                                .addStatement("val regex = Regex(\"\\\\&([a-zA-Z0-9]+)\\\\;\")")
+                                .beginControlFlow("return regex.replace(rawValue) { matchResult ->")
+                                .addStatement("val key = matchResult.groupValues[1]")
+                                .addStatement("entities.getOrDefault(key, key)")
+                                .endControlFlow()
+                                .build()
+                        )
+                        .build()
+                )
+                .addType(
+                    TypeSpec.companionObjectBuilder()
+                        .addProperties(entities)
+                        .build()
+                )
+        } else {
+            parsedCharacterDataBuilder
+                .addProperty(
+                    PropertySpec.builder("content", String::class)
+                        .initializer("content")
+                        .build()
+                )
+                .primaryConstructor(
+                    FunSpec.constructorBuilder()
+                        .addParameter("content", String::class)
+                        .build()
+                )
+        }
+        return listOf(parsedCharacterDataBuilder.build())
+    }
+
+    internal fun generatePropertiesForEntities(entities: List<Entity>): List<PropertySpec> {
         val internalEntities = mutableMapOf<String, String>()
         val externalEntities = mutableMapOf<String, String>()
 
@@ -72,7 +137,7 @@ public class DataClassGenerator(
                 .addStatement(")")
             properties.add(
                 PropertySpec.builder(
-                    "${dtdName.toPascalCase()}InternalEntities",
+                    "InternalEntities",
                     Map::class.parameterizedBy(String::class, String::class)
                 )
                     .initializer(builder.build())
@@ -91,7 +156,7 @@ public class DataClassGenerator(
                 .addStatement(")")
             properties.add(
                 PropertySpec.builder(
-                    "${dtdName.toPascalCase()}ExternalEntities",
+                    "ExternalEntities",
                     Map::class.parameterizedBy(String::class, String::class)
                 )
                     .initializer(builder.build())
@@ -122,11 +187,11 @@ public class DataClassGenerator(
                 if (element.containsPcData && element.children.isEmpty()) {
                     val propertyName = "content"
                     parameters.add(
-                        ParameterSpec.builder(propertyName, List::class.parameterizedBy(String::class))
+                        ParameterSpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
                             .build()
                     )
                     properties.add(
-                        PropertySpec.builder(propertyName, List::class.parameterizedBy(String::class))
+                        PropertySpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
                             .addModifiers(KModifier.PUBLIC)
                             .addAnnotation(XmlValue::class)
                             .initializer(propertyName)
@@ -160,12 +225,12 @@ public class DataClassGenerator(
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(Serializable::class)
                             .addAnnotation(JvmInline::class)
-                            .addProperty(PropertySpec.builder("content", String::class)
+                            .addProperty(PropertySpec.builder("content", PcDataClassName)
                                 .addModifiers(KModifier.PUBLIC)
                                 .initializer("content")
                                 .build())
                             .primaryConstructor(FunSpec.constructorBuilder()
-                                .addParameter("content", String::class)
+                                .addParameter("content", PcDataClassName)
                                 .build())
                             .addSuperinterface(ClassName(packageName, className.simpleName, sealedType.name!!))
                             .build()
@@ -198,11 +263,11 @@ public class DataClassGenerator(
             is ElementDefinition.ParsedCharacterData -> {
                 val propertyName = "content"
                 parameters.add(
-                    ParameterSpec.builder(propertyName, String::class)
+                    ParameterSpec.builder(propertyName, PcDataClassName)
                         .build()
                 )
                 properties.add(
-                    PropertySpec.builder(propertyName, String::class)
+                    PropertySpec.builder(propertyName, PcDataClassName)
                         .addModifiers(KModifier.PUBLIC)
                         .addAnnotation(XmlValue::class)
                         .initializer(propertyName)
