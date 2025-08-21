@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.xml)
 
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.diffplug.selfie)
 }
 
 detekt {
@@ -27,4 +28,11 @@ publish {
     description = "Generate Kotlin code from XML DTD."
     repositoryUrl = "https://github.com/kmpdict/xmldtd-kt"
     license = "CC-BY-SA-4.0"
+}
+
+tasks.test {
+    useJUnitPlatform()
+    inputs.files(fileTree("src/test") { // optional, improves up-to-date checking
+        include("**/*.ss")
+    })
 }

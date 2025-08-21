@@ -1,16 +1,20 @@
 [versions]
-agp = "8.11.1"
-kotlin = "2.2.0"
+agp = "8.12.1"
+kotlin = "2.2.10"
 
 kotlinx-io = "0.8.0"
 
 kotlinpoet = "2.2.0"
+
+selfie = "2.5.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-serialization-xml = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.91.2" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 square-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+
+diffplug-selfie = { module = "com.diffplug.selfie:selfie-runner-junit5", version.ref = "selfie" }
 
 android-libraryGradlePlugin = { module = "com.android.library:com.android.library.gradle.plugin", version.ref = "agp" }
 kotlin-multiplatformGradlePlugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
