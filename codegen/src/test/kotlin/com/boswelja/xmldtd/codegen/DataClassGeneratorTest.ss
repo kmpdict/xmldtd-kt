@@ -25,6 +25,7 @@ public data class Comments(
   public val content: ParsedCharacterData,
 )
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   public val content: String,
@@ -70,6 +71,7 @@ public sealed interface DateOrTime {
   ) : DateOrTime
 }
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   public val content: String,
@@ -168,6 +170,7 @@ public data class Nested(
   public val articles: List<Article>,
 )
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   public val content: String,
@@ -192,15 +195,16 @@ public data class ParseableData(
   public val content: ParsedCharacterData,
 )
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   internal val rawValue: String,
 ) {
   public fun parse(entities: Map<String, String> = InternalEntities): String {
-    val regex = Regex("\\&([a-zA-Z0-9]+)\\;")
+    val regex = Regex("&([a-zA-Z0-9]+);")
     return regex.replace(rawValue) { matchResult ->
       val key = matchResult.groupValues[1]
-      entities.getOrDefault(key, key)
+      entities[key] ?: key
     }
   }
 
@@ -239,6 +243,7 @@ public data class Prefixes(
   public val content: ParsedCharacterData,
 )
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   public val content: String,
@@ -265,6 +270,7 @@ public data class NoNestedData(
   public val content: ParsedCharacterData,
 )
 
+@Serializable
 @JvmInline
 public value class ParsedCharacterData(
   public val content: String,
