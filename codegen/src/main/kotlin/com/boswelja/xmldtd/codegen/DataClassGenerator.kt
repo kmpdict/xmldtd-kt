@@ -58,6 +58,7 @@ public class DataClassGenerator(
         val entities = generatePropertiesForEntities(entities)
         val parsedCharacterDataBuilder = TypeSpec.classBuilder(PcDataClassName)
             .addModifiers(KModifier.VALUE)
+            .addAnnotation(Serializable::class)
             .addAnnotation(JvmInline::class)
         if (entities.isNotEmpty()) {
             parsedCharacterDataBuilder
@@ -82,10 +83,10 @@ public class DataClassGenerator(
                         .returns(String::class)
                         .addCode(
                             CodeBlock.builder()
-                                .addStatement("val regex = Regex(\"\\\\&([a-zA-Z0-9]+)\\\\;\")")
+                                .addStatement("val regex = Regex(\"&([a-zA-Z0-9]+);\")")
                                 .beginControlFlow("return regex.replace(rawValue) { matchResult ->")
                                 .addStatement("val key = matchResult.groupValues[1]")
-                                .addStatement("entities.getOrDefault(key, key)")
+                                .addStatement("entities[key] ?: key")
                                 .endControlFlow()
                                 .build()
                         )
