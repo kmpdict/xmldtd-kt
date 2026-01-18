@@ -169,155 +169,206 @@ public class DataClassGenerator(
     }
 
     internal fun generateTypeSpecForElement(element: ElementDefinition): GeneratedTypes {
+        return when (element) {
+            is ElementDefinition.Empty -> element.toTypeSpec()
+            is ElementDefinition.Mixed -> element.toTypeSpec()
+            is ElementDefinition.WithChildren -> element.toTypeSpec()
+            is ElementDefinition.Any -> element.toTypeSpec()
+            is ElementDefinition.ParsedCharacterData -> element.toTypeSpec()
+            is ElementDefinition.Either -> element.toTypeSpec()
+        }
+    }
+
+    internal fun ElementDefinition.Either.toTypeSpec(): GeneratedTypes {
         val types = mutableListOf<TypeSpec>()
         val nestedTypes = mutableListOf<TypeSpec>()
         val parameters = mutableListOf<ParameterSpec>()
         val properties = mutableListOf<PropertySpec>()
 
-        val className = ClassName(packageName, element.elementName.toPascalCase())
+        val className = ClassName(packageName, elementName.toPascalCase())
 
-        generatePropsForAttrs(element.attributes).also { generatedProperties ->
+        generatePropsForAttrs(attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
+        }
+        val rootTypeBuilder = TypeSpec.interfaceBuilder(className)
+            .addModifiers(KModifier.SEALED)
+        options
+            .map { generateTypesForChild(it) }
+            .forEach { generatedTypes ->
+                val generatedSealedSubtypes = generatedTypes.topLevelTypes.map {
+                    if (it.name == generatedTypes.rootClassName.simpleName) {
+                        it.toBuilder()
+                            .addSuperinterface(className)
+                            .primaryConstructor(
+                                it.primaryConstructor?.toBuilder()
+                                    ?.addParameters(parameters)
+                                    ?.build()
+                            )
+                            .build()
+                    } else {
+                        it
+                    }
+                }
+                nestedTypes.addAll(generatedSealedSubtypes)
+            }
+        val rootType = rootTypeBuilder
+            .apply {
+                comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", elementName)
+                .build())
+            .build()
+
+        types.add(rootType)
+        return GeneratedTypes(
+            rootClassName = className,
+            topLevelTypes = types
+        )
+    }
+
+    internal fun ElementDefinition.ParsedCharacterData.toTypeSpec(): GeneratedTypes {
+        val types = mutableListOf<TypeSpec>()
+        val nestedTypes = mutableListOf<TypeSpec>()
+        val parameters = mutableListOf<ParameterSpec>()
+        val properties = mutableListOf<PropertySpec>()
+
+        val className = ClassName(packageName, elementName.toPascalCase())
+
+        generatePropsForAttrs(attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
+        }
+        val propertyName = "content"
+        parameters.add(
+            ParameterSpec.builder(propertyName, PcDataClassName)
+                .build()
+        )
+        properties.add(
+            PropertySpec.builder(propertyName, PcDataClassName)
+                .addModifiers(KModifier.PUBLIC)
+                .addAnnotation(XmlValue::class)
+                .initializer(propertyName)
+                .build()
+        )
+        val rootTypeBuilder = if (parameters.isEmpty()) {
+            TypeSpec.objectBuilder(className.simpleName)
+        } else {
+            val constructorBuilder = FunSpec.constructorBuilder()
+                .addParameters(parameters)
+                .build()
+            TypeSpec.classBuilder(className.simpleName)
+                .primaryConstructor(constructorBuilder)
+        }
+
+        val rootType = rootTypeBuilder
+            .apply {
+                comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addModifiers(KModifier.DATA)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", elementName)
+                .build())
+            .build()
+
+        types.add(rootType)
+        return GeneratedTypes(
+            rootClassName = className,
+            topLevelTypes = types
+        )
+    }
+
+    internal fun ElementDefinition.Any.toTypeSpec(): GeneratedTypes {
+        val types = mutableListOf<TypeSpec>()
+        val nestedTypes = mutableListOf<TypeSpec>()
+        val parameters = mutableListOf<ParameterSpec>()
+        val properties = mutableListOf<PropertySpec>()
+
+        val className = ClassName(packageName, elementName.toPascalCase())
+
+        generatePropsForAttrs(attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
+        }
+        val propertyName = "content"
+        parameters.add(
+            ParameterSpec.builder(propertyName, PcDataClassName)
+                .build()
+        )
+        properties.add(
+            PropertySpec.builder(propertyName, PcDataClassName)
+                .addModifiers(KModifier.PUBLIC)
+                .addAnnotation(XmlValue::class)
+                .initializer(propertyName)
+                .build()
+        )
+        val rootTypeBuilder = if (parameters.isEmpty()) {
+            TypeSpec.objectBuilder(className.simpleName)
+        } else {
+            val constructorBuilder = FunSpec.constructorBuilder()
+                .addParameters(parameters)
+                .build()
+            TypeSpec.classBuilder(className.simpleName)
+                .primaryConstructor(constructorBuilder)
+        }
+
+        val rootType = rootTypeBuilder
+            .apply {
+                comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addModifiers(KModifier.DATA)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", elementName)
+                .build())
+            .build()
+
+        types.add(rootType)
+        return GeneratedTypes(
+            rootClassName = className,
+            topLevelTypes = types
+        )
+    }
+
+    internal fun ElementDefinition.WithChildren.toTypeSpec(): GeneratedTypes {
+        val types = mutableListOf<TypeSpec>()
+        val nestedTypes = mutableListOf<TypeSpec>()
+        val parameters = mutableListOf<ParameterSpec>()
+        val properties = mutableListOf<PropertySpec>()
+
+        val className = ClassName(packageName, elementName.toPascalCase())
+
+        generatePropsForAttrs(attributes).also { generatedProperties ->
             parameters.addAll(generatedProperties.parameters)
             properties.addAll(generatedProperties.properties)
             nestedTypes.addAll(generatedProperties.types)
         }
 
-        when (element) {
-            is ElementDefinition.Empty -> { /* Nothing to add */ }
-            is ElementDefinition.Mixed -> {
-                if (element.containsPcData && element.children.isEmpty()) {
-                    val propertyName = "content"
-                    parameters.add(
-                        ParameterSpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
-                            .build()
-                    )
-                    properties.add(
-                        PropertySpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
-                            .addModifiers(KModifier.PUBLIC)
-                            .addAnnotation(XmlValue::class)
-                            .initializer(propertyName)
-                            .build()
-                    )
-                } else {
-                    val sealedType = TypeSpec.interfaceBuilder("Content")
-                        .addModifiers(KModifier.SEALED)
-                        .addAnnotation(Serializable::class)
-                        .build()
-                    val sealedSubtypes = element.children
-                        .map { elementDefinition ->
-                            val typeSpec = generateTypeSpecForElement(elementDefinition)
-                            val rootTypeSpec = typeSpec.topLevelTypes
-                                .first { it.name == typeSpec.rootClassName.simpleName }
-                            typeSpec.topLevelTypes
-                                .toMutableList()
-                                .apply {
-                                    remove(rootTypeSpec)
-                                    add(rootTypeSpec.toBuilder()
-                                        .addSuperinterface(
-                                            ClassName(packageName, className.simpleName, sealedType.name!!)
-                                        )
-                                        .build())
-                                }
-                        }
-                        .flatten()
-                        .toMutableList()
-                    if (element.containsPcData) {
-                        sealedSubtypes += TypeSpec.classBuilder("PcData")
-                            .addModifiers(KModifier.VALUE)
-                            .addAnnotation(Serializable::class)
-                            .addAnnotation(JvmInline::class)
-                            .addProperty(PropertySpec.builder("content", PcDataClassName)
-                                .addModifiers(KModifier.PUBLIC)
-                                .initializer("content")
-                                .build())
-                            .primaryConstructor(FunSpec.constructorBuilder()
-                                .addParameter("content", PcDataClassName)
-                                .build())
-                            .addSuperinterface(ClassName(packageName, className.simpleName, sealedType.name!!))
-                            .build()
-                    }
-                    nestedTypes.add(sealedType)
-                    nestedTypes.addAll(sealedSubtypes)
-                    val propertyType = List::class.asClassName()
-                        .parameterizedBy(className.nestedClass(sealedType.name!!))
-                    parameters.add(
-                        ParameterSpec.builder("content", propertyType)
-                            .build()
-                    )
-                    properties.add(
-                        PropertySpec.builder("content", propertyType)
-                            .addModifiers(KModifier.PUBLIC)
-                            .addAnnotation(XmlValue::class)
-                            .initializer("content")
-                            .build()
-                    )
-                }
-            }
-            is ElementDefinition.WithChildren -> {
-                generatePropertiesForChildren(element.children).also { generatedProperties ->
-                    parameters.addAll(generatedProperties.parameters)
-                    properties.addAll(generatedProperties.properties)
-                    types.addAll(generatedProperties.types)
-                }
-            }
-            is ElementDefinition.Any,
-            is ElementDefinition.ParsedCharacterData -> {
-                val propertyName = "content"
-                parameters.add(
-                    ParameterSpec.builder(propertyName, PcDataClassName)
-                        .build()
-                )
-                properties.add(
-                    PropertySpec.builder(propertyName, PcDataClassName)
-                        .addModifiers(KModifier.PUBLIC)
-                        .addAnnotation(XmlValue::class)
-                        .initializer(propertyName)
-                        .build()
-                )
-            }
-            is ElementDefinition.Either -> {
-                val rootTypeBuilder = TypeSpec.interfaceBuilder(className)
-                    .addModifiers(KModifier.SEALED)
-                element.options
-                    .map { generateTypesForChild(it) }
-                    .forEach { generatedTypes ->
-                        val generatedSealedSubtypes = generatedTypes.topLevelTypes.map {
-                            if (it.name == generatedTypes.rootClassName.simpleName) {
-                                it.toBuilder()
-                                    .addSuperinterface(className)
-                                    .primaryConstructor(
-                                        it.primaryConstructor?.toBuilder()
-                                            ?.addParameters(parameters)
-                                            ?.build()
-                                    )
-                                    .build()
-                            } else {
-                                it
-                            }
-                        }
-                        nestedTypes.addAll(generatedSealedSubtypes)
-                    }
-                val rootType = rootTypeBuilder
-                    .apply {
-                        element.comment?.let {
-                            addKdoc(it)
-                        }
-                    }
-                    .addProperties(properties)
-                    .addTypes(nestedTypes)
-                    .addAnnotation(Serializable::class)
-                    .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
-                    .addAnnotation(AnnotationSpec.builder(SerialName::class)
-                        .addMember("value = %S", element.elementName)
-                        .build())
-                    .build()
-
-                types.add(rootType)
-                return GeneratedTypes(
-                    rootClassName = className,
-                    topLevelTypes = types
-                )
-            }
+        generatePropertiesForChildren(children).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            types.addAll(generatedProperties.types)
         }
 
         val rootTypeBuilder = if (parameters.isEmpty()) {
@@ -332,7 +383,7 @@ public class DataClassGenerator(
 
         val rootType = rootTypeBuilder
             .apply {
-                element.comment?.let {
+                comment?.let {
                     addKdoc(it)
                 }
             }
@@ -342,7 +393,169 @@ public class DataClassGenerator(
             .addAnnotation(Serializable::class)
             .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
             .addAnnotation(AnnotationSpec.builder(SerialName::class)
-                .addMember("value = %S", element.elementName)
+                .addMember("value = %S", elementName)
+                .build())
+            .build()
+
+        types.add(rootType)
+        return GeneratedTypes(
+            rootClassName = className,
+            topLevelTypes = types
+        )
+    }
+
+    internal fun ElementDefinition.Empty.toTypeSpec(): GeneratedTypes {
+        val types = mutableListOf<TypeSpec>()
+        val nestedTypes = mutableListOf<TypeSpec>()
+        val parameters = mutableListOf<ParameterSpec>()
+        val properties = mutableListOf<PropertySpec>()
+
+        val className = ClassName(packageName, elementName.toPascalCase())
+
+        generatePropsForAttrs(attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
+        }
+
+        val rootTypeBuilder = if (parameters.isEmpty()) {
+            TypeSpec.objectBuilder(className.simpleName)
+        } else {
+            val constructorBuilder = FunSpec.constructorBuilder()
+                .addParameters(parameters)
+                .build()
+            TypeSpec.classBuilder(className.simpleName)
+                .primaryConstructor(constructorBuilder)
+        }
+
+        val rootType = rootTypeBuilder
+            .apply {
+                comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addModifiers(KModifier.DATA)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", elementName)
+                .build())
+            .build()
+
+        types.add(rootType)
+        return GeneratedTypes(
+            rootClassName = className,
+            topLevelTypes = types
+        )
+    }
+
+    internal fun ElementDefinition.Mixed.toTypeSpec(): GeneratedTypes {
+        val types = mutableListOf<TypeSpec>()
+        val nestedTypes = mutableListOf<TypeSpec>()
+        val parameters = mutableListOf<ParameterSpec>()
+        val properties = mutableListOf<PropertySpec>()
+
+        val className = ClassName(packageName, elementName.toPascalCase())
+
+        generatePropsForAttrs(attributes).also { generatedProperties ->
+            parameters.addAll(generatedProperties.parameters)
+            properties.addAll(generatedProperties.properties)
+            nestedTypes.addAll(generatedProperties.types)
+        }
+
+        if (containsPcData && children.isEmpty()) {
+            val propertyName = "content"
+            parameters.add(
+                ParameterSpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
+                    .build()
+            )
+            properties.add(
+                PropertySpec.builder(propertyName, List::class.asClassName().parameterizedBy(PcDataClassName))
+                    .addModifiers(KModifier.PUBLIC)
+                    .addAnnotation(XmlValue::class)
+                    .initializer(propertyName)
+                    .build()
+            )
+        } else {
+            val sealedType = TypeSpec.interfaceBuilder("Content")
+                .addModifiers(KModifier.SEALED)
+                .addAnnotation(Serializable::class)
+                .build()
+            val sealedSubtypes = children
+                .map { elementDefinition ->
+                    val typeSpec = generateTypeSpecForElement(elementDefinition)
+                    val rootTypeSpec = typeSpec.topLevelTypes
+                        .first { it.name == typeSpec.rootClassName.simpleName }
+                    typeSpec.topLevelTypes
+                        .toMutableList()
+                        .apply {
+                            remove(rootTypeSpec)
+                            add(rootTypeSpec.toBuilder()
+                                .addSuperinterface(
+                                    ClassName(packageName, className.simpleName, sealedType.name!!)
+                                )
+                                .build())
+                        }
+                }
+                .flatten()
+                .toMutableList()
+            if (containsPcData) {
+                sealedSubtypes += TypeSpec.classBuilder("PcData")
+                    .addModifiers(KModifier.VALUE)
+                    .addAnnotation(Serializable::class)
+                    .addAnnotation(JvmInline::class)
+                    .addProperty(PropertySpec.builder("content", PcDataClassName)
+                        .addModifiers(KModifier.PUBLIC)
+                        .initializer("content")
+                        .build())
+                    .primaryConstructor(FunSpec.constructorBuilder()
+                        .addParameter("content", PcDataClassName)
+                        .build())
+                    .addSuperinterface(ClassName(packageName, className.simpleName, sealedType.name!!))
+                    .build()
+            }
+            nestedTypes.add(sealedType)
+            nestedTypes.addAll(sealedSubtypes)
+            val propertyType = List::class.asClassName()
+                .parameterizedBy(className.nestedClass(sealedType.name!!))
+            parameters.add(
+                ParameterSpec.builder("content", propertyType)
+                    .build()
+            )
+            properties.add(
+                PropertySpec.builder("content", propertyType)
+                    .addModifiers(KModifier.PUBLIC)
+                    .addAnnotation(XmlValue::class)
+                    .initializer("content")
+                    .build()
+            )
+        }
+
+        val rootTypeBuilder = if (parameters.isEmpty()) {
+            TypeSpec.objectBuilder(className.simpleName)
+        } else {
+            val constructorBuilder = FunSpec.constructorBuilder()
+                .addParameters(parameters)
+                .build()
+            TypeSpec.classBuilder(className.simpleName)
+                .primaryConstructor(constructorBuilder)
+        }
+
+        val rootType = rootTypeBuilder
+            .apply {
+                comment?.let {
+                    addKdoc(it)
+                }
+            }
+            .addProperties(properties)
+            .addModifiers(KModifier.DATA)
+            .addTypes(nestedTypes)
+            .addAnnotation(Serializable::class)
+            .addAnnotation(AnnotationSpec.builder(XmlElement::class).addMember("value = %L", true).build())
+            .addAnnotation(AnnotationSpec.builder(SerialName::class)
+                .addMember("value = %S", elementName)
                 .build())
             .build()
 
