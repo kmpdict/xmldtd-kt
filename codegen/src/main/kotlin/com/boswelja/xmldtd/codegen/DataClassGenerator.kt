@@ -168,13 +168,13 @@ public class DataClassGenerator(
         return properties
     }
 
-    internal fun generateTypeSpecForElement(element: ElementDefinition): GeneratedTypes {
+    internal fun generateTypeSpecForElement(element: ElementDefinition, mustBoxType: Boolean = false): GeneratedTypes {
         return when (element) {
             is ElementDefinition.Empty -> element.toTypeSpec()
             is ElementDefinition.Mixed -> element.toTypeSpec()
             is ElementDefinition.WithChildren -> element.toTypeSpec()
-            is ElementDefinition.Any -> element.toTypeSpec()
-            is ElementDefinition.ParsedCharacterData -> element.toTypeSpec()
+            is ElementDefinition.Any -> element.toTypeSpec(mustBoxType)
+            is ElementDefinition.ParsedCharacterData -> element.toTypeSpec(mustBoxType)
             is ElementDefinition.Either -> element.toTypeSpec()
         }
     }
@@ -195,7 +195,7 @@ public class DataClassGenerator(
         val rootTypeBuilder = TypeSpec.interfaceBuilder(className)
             .addModifiers(KModifier.SEALED)
         options
-            .map { generateTypesForChild(it) }
+            .map { generateTypesForChild(it, mustBoxTypes = true) }
             .forEach { generatedTypes ->
                 val generatedSealedSubtypes = generatedTypes.topLevelTypes.map {
                     if (it.name == generatedTypes.rootClassName.simpleName) {
@@ -235,7 +235,14 @@ public class DataClassGenerator(
         )
     }
 
-    internal fun ElementDefinition.ParsedCharacterData.toTypeSpec(): GeneratedTypes {
+    internal fun ElementDefinition.ParsedCharacterData.toTypeSpec(mustBoxType: Boolean): GeneratedTypes {
+        if (attributes.isEmpty() && !mustBoxType) {
+            return GeneratedTypes(
+                rootClassName = PcDataClassName,
+                topLevelTypes = emptyList()
+            )
+        }
+
         val types = mutableListOf<TypeSpec>()
         val nestedTypes = mutableListOf<TypeSpec>()
         val parameters = mutableListOf<ParameterSpec>()
@@ -293,7 +300,14 @@ public class DataClassGenerator(
         )
     }
 
-    internal fun ElementDefinition.Any.toTypeSpec(): GeneratedTypes {
+    internal fun ElementDefinition.Any.toTypeSpec(mustBoxType: Boolean): GeneratedTypes {
+        if (attributes.isEmpty() && !mustBoxType) {
+            return GeneratedTypes(
+                rootClassName = PcDataClassName,
+                topLevelTypes = emptyList()
+            )
+        }
+
         val types = mutableListOf<TypeSpec>()
         val nestedTypes = mutableListOf<TypeSpec>()
         val parameters = mutableListOf<ParameterSpec>()
@@ -485,7 +499,7 @@ public class DataClassGenerator(
                 .build()
             val sealedSubtypes = children
                 .map { elementDefinition ->
-                    val typeSpec = generateTypeSpecForElement(elementDefinition)
+                    val typeSpec = generateTypeSpecForElement(elementDefinition, mustBoxType = true)
                     val rootTypeSpec = typeSpec.topLevelTypes
                         .first { it.name == typeSpec.rootClassName.simpleName }
                     typeSpec.topLevelTypes
@@ -616,7 +630,7 @@ public class DataClassGenerator(
         )
     }
 
-    internal fun generateTypesForChild(childElementDefinition: ChildElementDefinition): GeneratedTypes {
+    internal fun generateTypesForChild(childElementDefinition: ChildElementDefinition, mustBoxTypes: Boolean = false): GeneratedTypes {
         return when (childElementDefinition) {
             is ChildElementDefinition.Either -> {
                 val childTypes = childElementDefinition.options.map { generateTypesForChild(it) }
@@ -639,7 +653,7 @@ public class DataClassGenerator(
                     topLevelTypes = topLevelTypes + sealedSpec
                 )
             }
-            is ChildElementDefinition.Single -> generateTypeSpecForElement(childElementDefinition.elementDefinition)
+            is ChildElementDefinition.Single -> generateTypeSpecForElement(childElementDefinition.elementDefinition, mustBoxTypes)
         }
     }
 

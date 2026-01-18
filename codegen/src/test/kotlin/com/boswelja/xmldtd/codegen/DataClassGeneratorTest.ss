@@ -86,47 +86,6 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
-import nl.adaptivity.xmlutil.serialization.XmlValue
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "HEADLINE")
-public data class Headline(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "BYLINE")
-public data class Byline(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "LEAD")
-public data class Lead(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "BODY")
-public data class Body(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "NOTES")
-public data class Notes(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
 
 @Serializable
 @XmlElement(value = true)
@@ -145,20 +104,20 @@ public data class Article(
   @SerialName(value = "EDITION")
   public val edition: String?,
   @XmlElement(value = true)
-  @SerialName(value = "HEADLINE")
-  public val headline: Headline,
-  @XmlElement(value = true)
-  @SerialName(value = "BYLINE")
-  public val byline: Byline,
-  @XmlElement(value = true)
-  @SerialName(value = "LEAD")
-  public val lead: Lead,
-  @XmlElement(value = true)
-  @SerialName(value = "BODY")
-  public val body: Body,
+  @SerialName(value = "NOTES")
+  public val parsedCharacterData: ParsedCharacterData,
   @XmlElement(value = true)
   @SerialName(value = "NOTES")
-  public val notes: Notes,
+  public val parsedCharacterData: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "NOTES")
+  public val parsedCharacterData: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "NOTES")
+  public val parsedCharacterData: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "NOTES")
+  public val parsedCharacterData: ParsedCharacterData,
 )
 
 @Serializable
@@ -182,18 +141,7 @@ package com.example.test
 import kotlin.String
 import kotlin.collections.Map
 import kotlin.jvm.JvmInline
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.serialization.XmlElement
-import nl.adaptivity.xmlutil.serialization.XmlValue
-
-@Serializable
-@XmlElement(value = true)
-@SerialName(value = "parseable_data")
-public data class ParseableData(
-  @XmlValue
-  public val content: ParsedCharacterData,
-)
 
 @Serializable
 @JvmInline
