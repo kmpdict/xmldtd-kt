@@ -597,9 +597,9 @@ public class DataClassGenerator(
             // If the type is a List, pluralize the name
             val propertyName = if (childElementDefinition.occurs == ChildElementDefinition.Occurs.ZeroOrMore ||
                 childElementDefinition.occurs == ChildElementDefinition.Occurs.AtLeastOnce) {
-                childTypes.rootClassName.simpleName.toCamelCase().toPlural()
+                childTypes.friendlyName.toCamelCase().toPlural()
             } else {
-                childTypes.rootClassName.simpleName.toCamelCase()
+                childTypes.friendlyName.toCamelCase()
             }
             parameters.add(
                 ParameterSpec.builder(propertyName, type)
@@ -630,7 +630,7 @@ public class DataClassGenerator(
         )
     }
 
-    internal fun generateTypesForChild(childElementDefinition: ChildElementDefinition, mustBoxTypes: Boolean = false): GeneratedTypes {
+    internal fun generateTypesForChild(childElementDefinition: ChildElementDefinition, mustBoxTypes: Boolean = false): GeneratedChildTypes {
         return when (childElementDefinition) {
             is ChildElementDefinition.Either -> {
                 val childTypes = childElementDefinition.options.map { generateTypesForChild(it) }
@@ -648,12 +648,20 @@ public class DataClassGenerator(
                         }
                     }
                     .flatten()
-                GeneratedTypes(
+                GeneratedChildTypes(
                     rootClassName = ClassName(packageName, typeName),
+                    friendlyName = typeName,
                     topLevelTypes = topLevelTypes + sealedSpec
                 )
             }
-            is ChildElementDefinition.Single -> generateTypeSpecForElement(childElementDefinition.elementDefinition, mustBoxTypes)
+            is ChildElementDefinition.Single -> {
+                val types = generateTypeSpecForElement(childElementDefinition.elementDefinition, mustBoxTypes)
+                GeneratedChildTypes(
+                    rootClassName = types.rootClassName,
+                    friendlyName = childElementDefinition.elementDefinition.elementName.toPascalCase(),
+                    topLevelTypes = types.topLevelTypes
+                )
+            }
         }
     }
 
@@ -774,6 +782,12 @@ public class DataClassGenerator(
             types = types
         )
     }
+
+    internal data class GeneratedChildTypes(
+        val rootClassName: ClassName,
+        val friendlyName: String,
+        val topLevelTypes: List<TypeSpec>
+    )
 
     internal data class GeneratedTypes(
         val rootClassName: ClassName,

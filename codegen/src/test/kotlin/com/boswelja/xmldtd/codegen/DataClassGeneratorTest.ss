@@ -104,20 +104,20 @@ public data class Article(
   @SerialName(value = "EDITION")
   public val edition: String?,
   @XmlElement(value = true)
-  @SerialName(value = "NOTES")
-  public val parsedCharacterData: ParsedCharacterData,
+  @SerialName(value = "HEADLINE")
+  public val headline: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "BYLINE")
+  public val byline: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "LEAD")
+  public val lead: ParsedCharacterData,
+  @XmlElement(value = true)
+  @SerialName(value = "BODY")
+  public val body: ParsedCharacterData,
   @XmlElement(value = true)
   @SerialName(value = "NOTES")
-  public val parsedCharacterData: ParsedCharacterData,
-  @XmlElement(value = true)
-  @SerialName(value = "NOTES")
-  public val parsedCharacterData: ParsedCharacterData,
-  @XmlElement(value = true)
-  @SerialName(value = "NOTES")
-  public val parsedCharacterData: ParsedCharacterData,
-  @XmlElement(value = true)
-  @SerialName(value = "NOTES")
-  public val parsedCharacterData: ParsedCharacterData,
+  public val notes: ParsedCharacterData,
 )
 
 @Serializable
