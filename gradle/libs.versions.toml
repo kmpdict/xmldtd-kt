@@ -6,7 +6,7 @@ kotlinx-io = "0.8.2"
 
 kotlinpoet = "2.2.0"
 
-selfie = "2.5.4"
+selfie = "2.5.5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
