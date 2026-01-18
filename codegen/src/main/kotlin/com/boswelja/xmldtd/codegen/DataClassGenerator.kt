@@ -46,7 +46,7 @@ public class DataClassGenerator(
     }
 
     internal fun buildFileSpec(dtd: DocumentTypeDefinition): FileSpec {
-        val generatedTypes = generateTypeSpecForElement(dtd.rootElement)
+        val generatedTypes = generateTypeSpecForElement(dtd.rootElement, mustBoxType = true)
         return FileSpec.builder(generatedTypes.rootClassName)
             .addTypes(generatedTypes.topLevelTypes)
             .addTypes(generateXmlDtdTypes(dtd.entities))

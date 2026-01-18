@@ -141,7 +141,18 @@ package com.example.test
 import kotlin.String
 import kotlin.collections.Map
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlValue
+
+@Serializable
+@XmlElement(value = true)
+@SerialName(value = "parseable_data")
+public data class ParseableData(
+  @XmlValue
+  public val content: ParsedCharacterData,
+)
 
 @Serializable
 @JvmInline
