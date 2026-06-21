@@ -2,7 +2,6 @@
 package com.example.test
 
 import kotlin.String
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -22,12 +21,6 @@ public data class Comments(
   @SerialName(value = "attr1")
   public val attr1: String,
   @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
   public val content: String,
 )
 
@@ -35,7 +28,6 @@ public value class ParsedCharacterData(
 package com.example.test
 
 import kotlin.String
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -56,7 +48,7 @@ public sealed interface DateOrTime {
   @SerialName(value = "date")
   public data class Date(
     @XmlValue
-    public val content: ParsedCharacterData,
+    public val content: String,
   ) : DateOrTime
 
   /**
@@ -67,22 +59,15 @@ public sealed interface DateOrTime {
   @SerialName(value = "time")
   public data class Time(
     @XmlValue
-    public val content: ParsedCharacterData,
+    public val content: String,
   ) : DateOrTime
 }
-
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
-  public val content: String,
-)
 
 ╔═ generates nested elements ═╗
 package com.example.test
 
 import kotlin.String
 import kotlin.collections.List
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -105,19 +90,19 @@ public data class Article(
   public val edition: String?,
   @XmlElement(value = true)
   @SerialName(value = "HEADLINE")
-  public val headline: ParsedCharacterData,
+  public val headline: String,
   @XmlElement(value = true)
   @SerialName(value = "BYLINE")
-  public val byline: ParsedCharacterData,
+  public val byline: String,
   @XmlElement(value = true)
   @SerialName(value = "LEAD")
-  public val lead: ParsedCharacterData,
+  public val lead: String,
   @XmlElement(value = true)
   @SerialName(value = "BODY")
-  public val body: ParsedCharacterData,
+  public val body: String,
   @XmlElement(value = true)
   @SerialName(value = "NOTES")
-  public val notes: ParsedCharacterData,
+  public val notes: String,
 )
 
 @Serializable
@@ -129,18 +114,10 @@ public data class Nested(
   public val articles: List<Article>,
 )
 
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
-  public val content: String,
-)
-
 ╔═ generates pcdata parser ═╗
 package com.example.test
 
 import kotlin.String
-import kotlin.collections.Map
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -151,36 +128,13 @@ import nl.adaptivity.xmlutil.serialization.XmlValue
 @SerialName(value = "parseable_data")
 public data class ParseableData(
   @XmlValue
-  public val content: ParsedCharacterData,
+  public val content: String,
 )
-
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
-  internal val rawValue: String,
-) {
-  public fun parse(entities: Map<String, String> = InternalEntities): String {
-    val regex = Regex("&([a-zA-Z0-9]+);")
-    return regex.replace(rawValue) { matchResult ->
-      val key = matchResult.groupValues[1]
-      entities[key] ?: key
-    }
-  }
-
-  public companion object {
-    public val InternalEntities: Map<String, String> = mapOf(
-      "NEWSPAPER" to "Vervet Logic Times",
-      "PUBLISHER" to "Vervet Logic Press",
-      "COPYRIGHT" to "Copyright 1998 Vervet Logic Press",
-    )
-  }
-}
 
 ╔═ generates prefixes ═╗
 package com.example.test
 
 import kotlin.String
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -199,12 +153,6 @@ public data class Prefixes(
   @SerialName(value = "name")
   public val name: String,
   @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
   public val content: String,
 )
 
@@ -212,7 +160,6 @@ public value class ParsedCharacterData(
 package com.example.test
 
 import kotlin.String
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -226,12 +173,6 @@ public data class NoNestedData(
   @SerialName(value = "attr1")
   public val attr1: String,
   @XmlValue
-  public val content: ParsedCharacterData,
-)
-
-@Serializable
-@JvmInline
-public value class ParsedCharacterData(
   public val content: String,
 )
 
