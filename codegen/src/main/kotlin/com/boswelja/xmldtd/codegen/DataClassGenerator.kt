@@ -35,7 +35,7 @@ public class DataClassGenerator(
     private val packageName: String,
     private val targetDir: Path
 ) {
-    internal val PcDataClassName = ClassName(packageName, "ParsedCharacterData")
+    internal val PcDataClassName = ClassName("kotlin", "String")
 
     /**
      * Writes the provided [DocumentTypeDefinition] to the specified [targetDir].
@@ -49,123 +49,7 @@ public class DataClassGenerator(
         val generatedTypes = generateTypeSpecForElement(dtd.rootElement, mustBoxType = true)
         return FileSpec.builder(generatedTypes.rootClassName)
             .addTypes(generatedTypes.topLevelTypes)
-            .addTypes(generateXmlDtdTypes(dtd.entities))
             .build()
-    }
-
-    internal fun generateXmlDtdTypes(entities: List<Entity>): List<TypeSpec> {
-        // PCData
-        val entities = generatePropertiesForEntities(entities)
-        val parsedCharacterDataBuilder = TypeSpec.classBuilder(PcDataClassName)
-            .addModifiers(KModifier.VALUE)
-            .addAnnotation(Serializable::class)
-            .addAnnotation(JvmInline::class)
-        if (entities.isNotEmpty()) {
-            parsedCharacterDataBuilder
-                .addProperty(
-                    PropertySpec.builder("rawValue", String::class)
-                        .addModifiers(KModifier.INTERNAL)
-                        .initializer("rawValue")
-                        .build()
-                )
-                .primaryConstructor(
-                    FunSpec.constructorBuilder()
-                        .addParameter("rawValue", String::class)
-                        .build()
-                )
-                .addFunction(
-                    FunSpec.builder("parse")
-                        .addParameter(
-                            ParameterSpec.builder("entities", Map::class.parameterizedBy(String::class, String::class))
-                                .defaultValue("InternalEntities")
-                                .build()
-                        )
-                        .returns(String::class)
-                        .addCode(
-                            CodeBlock.builder()
-                                .addStatement("val regex = Regex(\"&([a-zA-Z0-9]+);\")")
-                                .beginControlFlow("return regex.replace(rawValue) { matchResult ->")
-                                .addStatement("val key = matchResult.groupValues[1]")
-                                .addStatement("entities[key] ?: key")
-                                .endControlFlow()
-                                .build()
-                        )
-                        .build()
-                )
-                .addType(
-                    TypeSpec.companionObjectBuilder()
-                        .addProperties(entities)
-                        .build()
-                )
-        } else {
-            parsedCharacterDataBuilder
-                .addProperty(
-                    PropertySpec.builder("content", String::class)
-                        .initializer("content")
-                        .build()
-                )
-                .primaryConstructor(
-                    FunSpec.constructorBuilder()
-                        .addParameter("content", String::class)
-                        .build()
-                )
-        }
-        return listOf(parsedCharacterDataBuilder.build())
-    }
-
-    internal fun generatePropertiesForEntities(entities: List<Entity>): List<PropertySpec> {
-        val internalEntities = mutableMapOf<String, String>()
-        val externalEntities = mutableMapOf<String, String>()
-
-        entities.forEach { entity ->
-            when (entity) {
-                is Entity.External -> externalEntities[entity.name] = entity.url
-                is Entity.Internal -> internalEntities[entity.name] = entity.value
-            }
-        }
-
-        val properties = mutableListOf<PropertySpec>()
-
-        if (internalEntities.isNotEmpty()) {
-            val builder = CodeBlock.builder()
-                .addStatement("mapOf(")
-                .indent()
-            internalEntities.forEach { (key, value) ->
-                builder.addStatement("%S to %S,", key, value)
-            }
-            builder
-                .unindent()
-                .addStatement(")")
-            properties.add(
-                PropertySpec.builder(
-                    "InternalEntities",
-                    Map::class.parameterizedBy(String::class, String::class)
-                )
-                    .initializer(builder.build())
-                    .build()
-            )
-        }
-        if (externalEntities.isNotEmpty()) {
-            val builder = CodeBlock.builder()
-                .addStatement("mapOf(")
-                .indent()
-            externalEntities.forEach { (key, value) ->
-                builder.addStatement("%S to %S,", key, value)
-            }
-            builder
-                .unindent()
-                .addStatement(")")
-            properties.add(
-                PropertySpec.builder(
-                    "ExternalEntities",
-                    Map::class.parameterizedBy(String::class, String::class)
-                )
-                    .initializer(builder.build())
-                    .build()
-            )
-        }
-
-        return properties
     }
 
     internal fun generateTypeSpecForElement(element: ElementDefinition, mustBoxType: Boolean = false): GeneratedTypes {
